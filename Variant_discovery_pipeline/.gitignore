@@ -1,0 +1,73 @@
+# Data directories - exclude all input and output data
+Inputs/
+Input/
+Ivar/
+LoFreq/
+Output/
+Results/
+
+# Specific data file types
+*.bam
+*.bam.bai
+*.sam
+*.fasta
+*.fa
+*.fai
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.vcf.tbi
+*.tsv
+*.bed
+*.gff
+*.gff3
+*.gtf
+
+# Log files
+*.log
+run_*.log
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Conda environments
+*.yml
+*-env.yml
+environment.yml
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# R files
+.Rhistory
+.RData
+.Rproj.user
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Keep essential structure but ignore contents
+# Use ! to force include specific files if needed
+# !Scripts/
+# !README.md
