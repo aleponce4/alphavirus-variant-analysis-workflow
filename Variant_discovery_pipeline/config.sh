@@ -22,7 +22,7 @@ LOFREQ_ENABLE_INDELQUAL=1        # correct base alignment quality around indels
 LOFREQ_BAQ=1                     # enable BAQ adjustment, suppresses false SNP calls caused by alignment artifacts
 
 # General settings
-THREADS=8                       # number of threads to use for parallelizable steps
+THREADS=20                       # number of threads to use for parallelizable steps
 
 # Viral contig restriction
 VIRAL_CONTIG="${VIRAL_CONTIG:-VEEV_INH}"   # Restrict to viral reads before processing

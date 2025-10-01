@@ -33,11 +33,12 @@ primer_bed=$(find Input/Primers -name "*.bed" 2>/dev/null | head -n 1)
 echo "Indexing reference file..."
 samtools faidx "$reference"
 
-# Process each BAM file
-for bam_file in Input/BAMs/*.bam; do
+# Function to process a single sample
+process_sample() {
+    local bam_file="$1"
     if [ ! -f "$bam_file" ]; then
-        echo "No BAM files found in Input/BAMs/"
-        continue
+        echo "BAM file not found: $bam_file"
+        return 1
     fi
     
     # Extract sample name
@@ -49,7 +50,7 @@ for bam_file in Input/BAMs/*.bam; do
     
     # Restrict to viral contig first to avoid host reads
     echo "Extracting viral reads from contig: $VIRAL_CONTIG"
-    samtools view -b "$bam_file" "$VIRAL_CONTIG" | samtools sort -o "$out_dir/viral_only.bam" -
+    samtools view -@ 2 -b "$bam_file" "$VIRAL_CONTIG" | samtools sort -@ 2 -o "$out_dir/viral_only.bam" -
     samtools index "$out_dir/viral_only.bam"
     viral_bam="$out_dir/viral_only.bam"
     
@@ -60,7 +61,7 @@ for bam_file in Input/BAMs/*.bam; do
             -m $IVAR_PRIMER_TRIM_QUALITY -q $IVAR_PRIMER_BASE_QUALITY -s $IVAR_PRIMER_WINDOW_SIZE -e
         
         # Sort and index trimmed BAM
-        samtools sort -o "$out_dir/trimmed.sorted.bam" "$out_dir/trimmed.bam"
+        samtools sort -@ 2 -o "$out_dir/trimmed.sorted.bam" "$out_dir/trimmed.bam"
         samtools index "$out_dir/trimmed.sorted.bam"
         input_bam="$out_dir/trimmed.sorted.bam"
     else
@@ -71,12 +72,12 @@ for bam_file in Input/BAMs/*.bam; do
     
     # Generate consensus
     echo "Creating consensus..."
-    samtools mpileup -aa -A -d 0 -Q 0 --reference "$reference" "$input_bam" | \
+    samtools mpileup -aa -A -d 0 -Q 0 -r "$VIRAL_CONTIG" --reference "$reference" "$input_bam" | \
         ivar consensus -p "$out_dir/consensus" -m $IVAR_MIN_CONSENSUS_COVERAGE -t 0.5 -q $IVAR_MIN_BASE_QUALITY
     
     # Call variants
     echo "Calling variants..."
-    samtools mpileup -aa -A -d 0 -Q 0 --reference "$reference" "$input_bam" | \
+    samtools mpileup -aa -A -d 0 -Q 0 -r "$VIRAL_CONTIG" --reference "$reference" "$input_bam" | \
         ivar variants -p "$out_dir/variants" -r "$reference" \
         -m $IVAR_MIN_VARIANT_DEPTH -t $IVAR_MIN_VARIANT_FREQ
     
@@ -100,6 +101,64 @@ for bam_file in Input/BAMs/*.bam; do
     
     echo "Completed processing: $sample_name"
     echo ""
+}
+
+# Maximum number of parallel jobs
+MAX_JOBS=15
+
+# Process all BAM files in parallel
+echo "Starting parallel processing of samples (max $MAX_JOBS concurrent jobs)..."
+job_count=0
+pids=()
+
+for bam_file in Input/BAMs/*.bam; do
+    if [ ! -f "$bam_file" ]; then
+        echo "No BAM files found in Input/BAMs/"
+        break
+    fi
+    
+    # Start background job
+    process_sample "$bam_file" &
+    pids+=($!)
+    ((job_count++))
+    
+    sample_name=$(basename "$bam_file" .bam)
+    echo "Started processing $sample_name in background (job $job_count)"
+    
+    # If we've reached max jobs, wait for some to finish
+    if [ $job_count -ge $MAX_JOBS ]; then
+        echo "Reached maximum concurrent jobs ($MAX_JOBS). Waiting for jobs to complete..."
+        
+        # Wait for any job to complete
+        wait_count=0
+        while [ ${#pids[@]} -ge $MAX_JOBS ]; do
+            for i in "${!pids[@]}"; do
+                if ! kill -0 "${pids[i]}" 2>/dev/null; then
+                    echo "Job ${pids[i]} completed"
+                    unset 'pids[i]'
+                    ((wait_count++))
+                fi
+            done
+            
+            # Rebuild array to remove gaps
+            pids=("${pids[@]}")
+            
+            if [ $wait_count -eq 0 ]; then
+                sleep 5  # Brief pause before checking again
+            else
+                wait_count=0
+            fi
+        done
+    fi
 done
 
-echo "iVar pipeline completed. Processed all samples."
+# Wait for all remaining jobs to complete
+if [ ${#pids[@]} -gt 0 ]; then
+    echo "Waiting for remaining ${#pids[@]} jobs to complete..."
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+        echo "Job $pid completed"
+    done
+fi
+
+echo "iVar pipeline completed. Processed all samples in parallel."

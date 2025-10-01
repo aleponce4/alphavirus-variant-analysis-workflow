@@ -5,6 +5,8 @@ Ivar/
 LoFreq/
 Output/
 Results/
+Benchmark_variant_callers/
+Annotated_variants/
 
 # Specific data file types
 *.bam

@@ -70,6 +70,9 @@ def write_vcf_header(output_file, reference_file, sample_name):
         f.write("##FILTER=<ID=PASS,Description=\"All filters passed\">\n")
         f.write("##FILTER=<ID=FAIL,Description=\"Failed quality filters\">\n")
         
+        # Contig header for viral reference
+        f.write("##contig=<ID=VEEV_INH>\n")
+        
         # Column headers
         f.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{}\n".format(sample_name))
 
@@ -100,13 +103,13 @@ def convert_to_vcf(variants, output_file, reference_file, sample_name):
             # FORMAT field
             format_field = "GT:DP:AD:ALT_FREQ"
             
-            # Sample data
-            genotype = "0/1"  # Heterozygous call
+            # Sample data - use homozygous alt to avoid phasing issues
+            genotype = "1/1"  # Homozygous alternate call
             ref_dp = variant['REF_DP']
             alt_dp = variant['ALT_DP']
             sample_data = f"{genotype}:{total_dp}:{ref_dp},{alt_dp}:{alt_freq}"
             
-            # Write VCF line
+            # Write VCF line (ensure proper tab separation)
             vcf_line = f"{chrom}\t{pos}\t.\t{ref}\t{alt}\t{qual}\t{filter_field}\t{info}\t{format_field}\t{sample_data}\n"
             f.write(vcf_line)
 
