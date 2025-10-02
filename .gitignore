@@ -1,0 +1,43 @@
+# Exclude the entire Benchmark_variant_callers folder
+Benchmark_variant_callers/
+
+# Exclude BAM files (binary alignment map files)
+*.bam
+*.bam.bai
+*.bai
+
+# Exclude other large sequencing files
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.sam
+
+# Exclude temporary and cache files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Exclude log files
+*.log
+
+# Exclude Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Exclude Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Exclude backup files
+*~
+*.bak
+*.backup

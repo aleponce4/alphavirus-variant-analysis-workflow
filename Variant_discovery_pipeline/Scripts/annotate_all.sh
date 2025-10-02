@@ -10,7 +10,7 @@ conda activate annotation-env
 # Configuration
 REFERENCE="Input/Reference/inh.fasta"
 VIRAL_REFERENCE="/tmp/viral_only.fasta"  # Viral-only reference for annotation
-ANNOTATION="Input/Reference/INH.gff3"
+ANNOTATION="Input/Reference/VEEV_INH_genebank.gff3"
 OUTPUT_DIR="Annotated_variants"
 LOFREQ_DIR="$OUTPUT_DIR/LoFreq"
 IVAR_DIR="$OUTPUT_DIR/Ivar"
@@ -37,41 +37,44 @@ fi
 
 echo "Files validated. Starting annotation..."
 
-# Function to annotate LoFreq files (standard annotation)
+# Function to annotate LoFreq files (bcftools needs a GFF even with --local-csq)
 annotate_lofreq() {
-    local input_file=$1
-    local output_file=$2
-    
-    echo "  Annotating LoFreq: $(basename $input_file)"
-    if bcftools csq \
-        -f "$VIRAL_REFERENCE" \
-        -g "$ANNOTATION" \
-        "$input_file" \
-        -o "$output_file"; then
-        echo "    ✓ Success"
-    else
-        echo "    ✗ Failed (exit code $?)"
-        return 1
-    fi
+  local input_file=$1
+  local output_file=$2
+
+  echo "  Annotating LoFreq: $(basename "$input_file") [local-csq mode]"
+  if bcftools csq \
+      -f "$VIRAL_REFERENCE" \
+      -g "$ANNOTATION" \
+      --local-csq \
+      "$input_file" \
+      -o "$output_file"; then
+    echo "    ✓ Success"
+  else
+    echo "    ✗ Failed (exit code $?)"
+    return 1
+  fi
 }
 
-# Function to annotate iVar files (with --local-csq flag)
+# Function to annotate iVar files (bcftools needs a GFF even with --local-csq)
 annotate_ivar() {
-    local input_file=$1
-    local output_file=$2
-    
-    echo "  Annotating iVar: $(basename $input_file) [standard mode - no --local-csq]"
-    if bcftools csq \
-        -f "$VIRAL_REFERENCE" \
-        -g "$ANNOTATION" \
-        "$input_file" \
-        -o "$output_file"; then
-        echo "    ✓ Success"
-    else
-        echo "    ✗ Failed (exit code $?)"
-        return 1
-    fi
+  local input_file=$1
+  local output_file=$2
+
+  echo "  Annotating iVar: $(basename "$input_file") [local-csq mode]"
+  if bcftools csq \
+      -f "$VIRAL_REFERENCE" \
+      -g "$ANNOTATION" \
+      --local-csq \
+      "$input_file" \
+      -o "$output_file"; then
+    echo "    ✓ Success"
+  else
+    echo "    ✗ Failed (exit code $?)"
+    return 1
+  fi
 }
+
 
 # Process LoFreq files
 echo ""
