@@ -36,6 +36,7 @@ pip-delete-this-directory.txt
 
 # Exclude Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+.ipynb
 
 # Exclude backup files
 *~

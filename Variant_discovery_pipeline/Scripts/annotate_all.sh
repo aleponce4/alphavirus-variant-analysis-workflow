@@ -10,7 +10,7 @@ conda activate annotation-env
 # Configuration
 REFERENCE="Input/Reference/inh.fasta"
 VIRAL_REFERENCE="/tmp/viral_only.fasta"  # Viral-only reference for annotation
-ANNOTATION="Input/Reference/VEEV_INH_genebank.gff3"
+ANNOTATION="Input/Reference/VEEV_INH_fromGenbank.gff3" # GFF3 annotation file 
 OUTPUT_DIR="Annotated_variants"
 LOFREQ_DIR="$OUTPUT_DIR/LoFreq"
 IVAR_DIR="$OUTPUT_DIR/Ivar"
