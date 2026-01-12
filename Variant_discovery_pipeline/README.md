@@ -25,7 +25,7 @@ Multi-sample viral variant calling pipeline using iVar and LoFreq with functiona
 
 ## Features
 
-- Viral read filtering (excludes host contamination)
+- Viral read filtering (only viral contig)
 - Multi-sample processing
 - High-sensitivity variant calling (0.1% frequency, 5000× coverage)
 - Automatic cleanup and logging
