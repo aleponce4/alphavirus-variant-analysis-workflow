@@ -1,6 +1,19 @@
 # VEEV Variant Discovery Pipeline
 
-Comprehensive viral variant discovery pipeline comparing iVar (frequency-based) and LoFreq (statistical) variant calling methods with functional annotation.
+Comprehensive viral variant discovery pipeline optimized for **detecting rare, low-frequency variants** in deeply sequenced samples. Compares iVar (frequency-based) and LoFreq (statistical) variant calling methods with functional annotation.
+
+## Purpose
+
+This pipeline is specifically designed to:
+- **Detect ultra-rare variants** at frequencies as low as **0.1%** (1 in 1000 reads)
+- **Leverage deep coverage** (typically 5000×+) to identify variants with high confidence
+- **Compare two statistical approaches** (iVar vs LoFreq) to validate variant calls
+- **Annotate functional consequences** to assess clinical/biological impact
+
+This is particularly useful for viral samples with deep sequencing where rare variants may represent:
+- Intra-host viral evolution
+- Treatment-resistant mutations
+- Minor viral populations in mixed infections
 
 ## Quick Start
 
@@ -26,11 +39,12 @@ See [Variant_discovery_pipeline/README.md](Variant_discovery_pipeline/README.md)
 
 ## Key Features
 
-- **Two variant callers**: iVar (frequency-based) + LoFreq (statistical)
-- **Quality filtering**: Base quality, coverage, mapping quality thresholds
-- **Functional annotation**: Predict amino acid consequences using GFF3
+- **Two variant callers**: iVar (frequency-based) + LoFreq (statistical) for robust variant detection
+- **Rare variant optimized**: Detects variants at 0.1% frequency in deeply covered samples (5000×+)
+- **Quality filtering**: Stringent thresholds (Q30 base, Q60 mapping) ensure high-confidence calls
+- **Functional annotation**: Predict amino acid consequences using GFF3 reference annotation
 - **Test mode**: Validate pipeline on subsampled data before production run
-- **Per-sample runner**: `./Scripts/run_single_sample.sh <sample>`
+- **Per-sample runner**: `./Scripts/run_single_sample.sh <sample>` for quick re-processing
 
 ## Output Structure
 
@@ -45,10 +59,12 @@ Annotated_variants/      → Functional annotations
 ## Configuration
 
 Edit `config.sh` to adjust:
-- Coverage thresholds (iVar: 5000×, LoFreq: 5000×)
-- Frequency threshold (0.1%)
-- Quality scores (base quality 30, map quality 60)
-- Threads (default 20)
+- **Coverage thresholds**: iVar 5000×, LoFreq 5000× (tuned for rare variant detection)
+- **Frequency threshold**: 0.1% (detects 1 variant per 1000 reads)
+- **Quality scores**: Base quality 30, map quality 60 (ensures high confidence)
+- **Threads**: Default 20 for parallel processing
+
+These defaults are optimized for deep sequencing of viral genomes. Adjust coverage thresholds lower only if using shallower sequencing.
 
 ## Quick Commands
 
