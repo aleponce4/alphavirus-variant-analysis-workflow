@@ -1,0 +1,9 @@
+# Python dependencies for the VEEV analysis pipeline
+pandas>=2.0
+numpy>=1.26
+scipy>=1.10
+matplotlib>=3.9
+cython>=0.30
+
+# External tools that must be obtained separately
+git+https://github.com/chasewnelson/SNPGenie.git#egg=SNPGenie
