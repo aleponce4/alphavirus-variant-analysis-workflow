@@ -117,7 +117,17 @@ CliqueSNV outputs are written to:
 
 ## Requirements
 
-- samtools, bcftools
-- iVar, LoFreq
-- Python 3, pandas, numpy
-- Reference genome (FASTA) + GFF3 annotation
+- Conda environments: `ivar_env`, `lofreq-env`, `annotation-env`
+- Input BAMs in `Input/BAMs/`
+- Reference FASTA in `Input/Reference/`
+- Parameters in `config.sh`
+
+Each named environment lives under `envs/` so you can recreate the toolchain steps with `conda env create`:
+
+- `conda env create -f envs/ivar_env.yml`
+- `conda env create -f envs/lofreq-env.yml`
+- `conda env create -f envs/annotation-env.yml`
+- `conda env create -f envs/env_cliquesnv.yml`
+- `conda env create -f envs/env_viloca.yml`
+
+After the environments exist, install the Python dependencies used by the downstream analyses via `pip install -r requirements.txt` and the SNPGenie helper commands under `SNPGenie/`.

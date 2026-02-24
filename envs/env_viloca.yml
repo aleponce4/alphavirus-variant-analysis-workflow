@@ -1,0 +1,12 @@
+name: env_viloca
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - viloca
+  - samtools
+  - pandas
+  - matplotlib
+  - numpy

@@ -1,0 +1,13 @@
+name: ivar_env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - ivar
+  - samtools
+  - bcftools
+  - bedtools
+  - htslib
+  - tabix

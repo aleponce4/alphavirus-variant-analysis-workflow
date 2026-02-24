@@ -7,3 +7,11 @@ cython>=0.30
 
 # External tools that must be obtained separately
 git+https://github.com/chasewnelson/SNPGenie.git#egg=SNPGenie
+
+# The bash scripts rely on named conda environments defined under envs/;
+# recreate them before running the pipeline tools:
+#   conda env create -f envs/ivar_env.yml
+#   conda env create -f envs/lofreq-env.yml
+#   conda env create -f envs/annotation-env.yml
+#   conda env create -f envs/env_cliquesnv.yml
+#   conda env create -f envs/env_viloca.yml

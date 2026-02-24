@@ -1,0 +1,11 @@
+name: env_cliquesnv
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - cliquesnv
+  - samtools
+  - pandas
+  - numpy

@@ -1,0 +1,12 @@
+name: lofreq-env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - lofreq
+  - samtools
+  - bcftools
+  - htslib
+  - tabix
