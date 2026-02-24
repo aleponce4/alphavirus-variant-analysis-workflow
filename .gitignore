@@ -42,3 +42,24 @@ pip-delete-this-directory.txt
 *~
 *.bak
 *.backup
+
+# Haplotype analysis outputs
+Haplotype/cliquesnv/
+Haplotype/consensus/
+Haplotype/logs/
+Haplotype/viloca/
+
+# SNPGenie outputs and derived data
+SNPGenie/repo/
+SNPGenie/analysis/
+SNPGenie/input/
+SNPGenie/logs/
+SNPGenie/output/
+SNPGenie/runs/
+SNPGenie/summary/
+
+# Variant pipeline outputs
+Variant_discovery_pipeline/Analysis_output/
+
+# Sample data helper file
+bam_head.txt

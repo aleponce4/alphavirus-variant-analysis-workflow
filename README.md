@@ -76,6 +76,45 @@ These defaults are optimized for deep sequencing of viral genomes. Adjust covera
 | Run all samples (LoFreq) | `source config.sh && ./Scripts/run_lofreq.sh` |
 | Annotate results | `./Scripts/annotate_all.sh` |
 
+## Haplotype Reconstruction Alternatives
+
+After generating LoFreq viral BAMs, you can run either VILOCA or CliqueSNV from `Variant_discovery_pipeline/`.
+
+### VILOCA
+
+```bash
+cd Variant_discovery_pipeline
+../Haplotype/scripts/run_viloca.sh
+```
+
+### CliqueSNV (alternative)
+
+Install in your conda environment (example):
+
+```bash
+conda install -c bioconda cliquesnv samtools
+```
+
+Run all samples (`tf=0.01`; fixed low absolute `-t` floor + local proportional filtering via `-tf`):
+
+```bash
+cd Variant_discovery_pipeline
+../Haplotype/scripts/run_cliquesnv.sh
+```
+
+Run one sample:
+
+```bash
+cd Variant_discovery_pipeline
+../Haplotype/scripts/run_cliquesnv.sh INH_3_DPI_R1_A3
+```
+
+CliqueSNV outputs are written to:
+
+- `Haplotype/cliquesnv/<sample>/tf_0p01/`
+- `Haplotype/cliquesnv/logs/run_*.log`
+- `Haplotype/cliquesnv/Analysis/cliquesnv_brief_per_sample.tsv`
+
 ## Requirements
 
 - samtools, bcftools
