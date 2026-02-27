@@ -102,6 +102,15 @@ cd Variant_discovery_pipeline
 ../Haplotype/scripts/run_cliquesnv.sh
 ```
 
+Reads are prefiltered before CliqueSNV using objective alignment metrics:
+- primary alignments only (exclude unmapped/secondary/supplementary)
+- `MAPQ >= 30`
+- `NM <= 5`
+
+These are configurable via environment variables:
+- `CLIQUESNV_MIN_MAPQ` (default `30`)
+- `CLIQUESNV_MAX_NM` (default `5`)
+
 Run one sample:
 
 ```bash
@@ -114,6 +123,67 @@ CliqueSNV outputs are written to:
 - `Haplotype/cliquesnv/<sample>/tf_0p01/`
 - `Haplotype/cliquesnv/logs/run_*.log`
 - `Haplotype/cliquesnv/Analysis/cliquesnv_brief_per_sample.tsv`
+
+Prepare Datamonkey per-gene coding FASTAs from CliqueSNV haplotypes:
+
+```bash
+cd /home/jonssonlab/Desktop/Alex/VEEV/044_NH
+python3 Haplotype/scripts/prepare_datamonkey_haplotypes.py \
+	--tf-label auto \
+	--mask-readthrough-site 5682-5684
+```
+
+This writes outputs to:
+
+- `Haplotype/consensus/DataMonkeyInput/datamonkeyhaplotypes/`
+
+Notes:
+- `--tf-label auto` uses the lowest available `tf_*` output per sample (useful while lower-threshold runs are still in progress).
+- `--mask-readthrough-site 5682-5684` masks the VEEV nsP3 opal readthrough codon as `NNN` to avoid false internal-stop filtering.
+
+## Prepare PopART Inputs
+
+PopART's primary input format is **NEXUS alignments** (from PopART docs), so the scripts below generate both FASTA and NEXUS.
+
+### 1) Consensus + LoFreq variants (AF > 1%)
+
+Apply LoFreq SNPs with:
+- `FILTER=PASS`
+- `AF > 0.01` (strictly greater than 1%)
+- SNP-only (indels skipped to preserve fixed alignment length)
+
+```bash
+cd /home/jonssonlab/Desktop/Alex/VEEV/044_NH
+python3 Haplotype/scripts/prepare_popart_lofreq_gt1pct.py
+```
+
+Outputs:
+- `Haplotype/consensus/PopART_lofreq_gt1pct/fasta/popart_lofreq_gt1pct.fasta`
+- `Haplotype/consensus/PopART_lofreq_gt1pct/nexus/popart_lofreq_gt1pct.nex`
+
+### 2) Intra-sample CliqueSNV haplotypes (>1%)
+
+Build haplotype sequences by applying mutation tokens from `Haplotype/cliquesnv/Analysis/cliquesnv_haplotype_frequency_by_sample.csv`
+onto sample consensus, with:
+- haplotype `frequency_percent > 1.0` (strict)
+- SNP tokens only (e.g. `C6365T`)
+- non-SNP tokens (e.g. `del`) skipped
+
+Sequence IDs use readable labels such as:
+- `DPI3_R1_H5_n001`
+
+Encoding notes for PopART visualization:
+- NEXUS embedded traits are DPI-only (`dpis`) to keep legends interpretable.
+- Shared identical sequences can therefore appear as pie nodes by DPI contribution.
+
+```bash
+cd /home/jonssonlab/Desktop/Alex/VEEV/044_NH
+python3 Haplotype/scripts/prepare_popart_cliquesnv_haplotypes_gt1pct.py
+```
+
+Outputs:
+- `Haplotype/consensus/PopART_cliquesnv_haplotypes_gt1pct/fasta/popart_cliquesnv_haplotypes_gt1pct.fasta`
+- `Haplotype/consensus/PopART_cliquesnv_haplotypes_gt1pct/nexus/popart_cliquesnv_haplotypes_gt1pct.nex`
 
 ## Requirements
 

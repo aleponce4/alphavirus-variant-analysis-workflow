@@ -7,6 +7,7 @@ import json
 import re
 from pathlib import Path
 from typing import Iterable
+from dataclasses import dataclass
 
 SAMPLE_PATTERN = re.compile(r"^INH_(?P<dpi>\d+)_DPI_(?P<replicate>R\d+)_.*$")
 
@@ -32,6 +33,11 @@ def parse_args() -> argparse.Namespace:
         "--aa-annotation-csv",
         default="Variant_discovery_pipeline/Analysis_output/VEEV_LoFreq_mutations.csv",
         help="CSV containing DNA_Change to amino-acid annotation mapping.",
+    )
+    parser.add_argument(
+        "--annotation-gff",
+        default="Variant_discovery_pipeline/Input/Reference/VEEV_INH_fromGenbank.gff3",
+        help="GFF3 annotation used for CDS-based AA fallback when DNA_Change is not in CSV map.",
     )
     parser.add_argument(
         "--out-dir",
@@ -132,6 +138,156 @@ def token_to_dna_change(token: str) -> str | None:
     return None
 
 
+@dataclass(frozen=True)
+class CDSFeature:
+    start: int
+    end: int
+    strand: str
+    gene: str
+
+
+CODON_TABLE = {
+    "TTT": "F", "TTC": "F", "TTA": "L", "TTG": "L",
+    "CTT": "L", "CTC": "L", "CTA": "L", "CTG": "L",
+    "ATT": "I", "ATC": "I", "ATA": "I", "ATG": "M",
+    "GTT": "V", "GTC": "V", "GTA": "V", "GTG": "V",
+    "TCT": "S", "TCC": "S", "TCA": "S", "TCG": "S",
+    "CCT": "P", "CCC": "P", "CCA": "P", "CCG": "P",
+    "ACT": "T", "ACC": "T", "ACA": "T", "ACG": "T",
+    "GCT": "A", "GCC": "A", "GCA": "A", "GCG": "A",
+    "TAT": "Y", "TAC": "Y", "TAA": "*", "TAG": "*",
+    "CAT": "H", "CAC": "H", "CAA": "Q", "CAG": "Q",
+    "AAT": "N", "AAC": "N", "AAA": "K", "AAG": "K",
+    "GAT": "D", "GAC": "D", "GAA": "E", "GAG": "E",
+    "TGT": "C", "TGC": "C", "TGA": "*", "TGG": "W",
+    "CGT": "R", "CGC": "R", "CGA": "R", "CGG": "R",
+    "AGT": "S", "AGC": "S", "AGA": "R", "AGG": "R",
+    "GGT": "G", "GGC": "G", "GGA": "G", "GGG": "G",
+}
+
+
+def reverse_complement(seq: str) -> str:
+    table = str.maketrans("ACGTNacgtn", "TGCANtgcan")
+    return seq.translate(table)[::-1]
+
+
+def parse_gff_attributes(raw: str) -> dict[str, str]:
+    attrs: dict[str, str] = {}
+    for part in raw.split(";"):
+        part = part.strip()
+        if not part or "=" not in part:
+            continue
+        key, value = part.split("=", 1)
+        attrs[key] = value
+    return attrs
+
+
+def load_cds_features(gff_path: Path) -> list[CDSFeature]:
+    features: list[CDSFeature] = []
+    if not gff_path.exists():
+        return features
+
+    with gff_path.open("r", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            if not line or line.startswith("#"):
+                continue
+            cols = line.rstrip("\n").split("\t")
+            if len(cols) != 9:
+                continue
+            _, _, feature_type, start, end, _, strand, _, attrs_raw = cols
+            if feature_type != "CDS":
+                continue
+            try:
+                start_i = int(start)
+                end_i = int(end)
+            except ValueError:
+                continue
+            attrs = parse_gff_attributes(attrs_raw)
+            gene = attrs.get("gene") or attrs.get("Name") or attrs.get("ID") or "CDS"
+            if strand not in {"+", "-"}:
+                strand = "+"
+            features.append(CDSFeature(start=start_i, end=end_i, strand=strand, gene=gene))
+    return features
+
+
+DNA_CHANGE_SNP_PATTERN = re.compile(r"^(?P<pos>\d+)(?P<ref>[ACGT])>(?P<alt>[ACGT])$")
+DNA_CHANGE_DEL_PATTERN = re.compile(r"^(?P<pos>\d+)(?P<ref>[ACGT])>del$")
+
+
+def infer_effect_for_dna_change(dna_change: str, reference_seq: str, cds_features: list[CDSFeature]) -> str:
+    snp = DNA_CHANGE_SNP_PATTERN.match(dna_change)
+    deletion = DNA_CHANGE_DEL_PATTERN.match(dna_change)
+
+    if deletion:
+        pos = int(deletion.group("pos"))
+        in_cds = any(c.start <= pos <= c.end for c in cds_features)
+        return "frameshift_del" if in_cds else "noncoding_del"
+
+    if not snp:
+        return "NA"
+
+    pos = int(snp.group("pos"))
+    ref = snp.group("ref")
+    alt = snp.group("alt")
+
+    if pos < 1 or pos > len(reference_seq):
+        return "NA"
+    if reference_seq[pos - 1] != ref:
+        return "NA"
+
+    effects: list[str] = []
+    for cds in cds_features:
+        if not (cds.start <= pos <= cds.end):
+            continue
+
+        if cds.strand == "+":
+            codon_start = cds.start + ((pos - cds.start) // 3) * 3
+            codon_end = codon_start + 2
+            aa_pos = ((pos - cds.start) // 3) + 1
+        else:
+            codon_end = cds.end - ((cds.end - pos) // 3) * 3
+            codon_start = codon_end - 2
+            aa_pos = ((cds.end - pos) // 3) + 1
+
+        if codon_start < 1 or codon_end > len(reference_seq):
+            continue
+
+        codon_ref_genomic = reference_seq[codon_start - 1:codon_end]
+        if len(codon_ref_genomic) != 3:
+            continue
+
+        idx_in_codon = pos - codon_start
+        codon_alt_genomic = list(codon_ref_genomic)
+        codon_alt_genomic[idx_in_codon] = alt
+        codon_alt_genomic = "".join(codon_alt_genomic)
+
+        if cds.strand == "+":
+            codon_ref = codon_ref_genomic
+            codon_alt = codon_alt_genomic
+        else:
+            codon_ref = reverse_complement(codon_ref_genomic)
+            codon_alt = reverse_complement(codon_alt_genomic)
+
+        aa_ref = CODON_TABLE.get(codon_ref, "X")
+        aa_alt = CODON_TABLE.get(codon_alt, "X")
+        aa_change = f"{aa_ref}{aa_pos}{aa_alt}"
+
+        if aa_ref == aa_alt:
+            effect = f"syn:{aa_change}"
+        elif aa_alt == "*":
+            effect = f"stop:{aa_change}"
+        elif aa_ref == "*":
+            effect = f"stop_lost:{aa_change}"
+        else:
+            effect = f"mis:{aa_change}"
+
+        effects.append(f"{cds.gene}:{effect}")
+
+    if effects:
+        return "|".join(sorted(set(effects)))
+    return "noncoding"
+
+
 def load_aa_annotation_map(paths: Iterable[Path]) -> dict[str, str]:
 
     mapping: dict[str, set[str]] = {}
@@ -168,7 +324,12 @@ def load_aa_annotation_map(paths: Iterable[Path]) -> dict[str, str]:
     return collapsed
 
 
-def aa_summary_for_mutations(mutations: str, aa_map: dict[str, str]) -> str:
+def aa_summary_for_mutations(
+    mutations: str,
+    aa_map: dict[str, str],
+    reference_seq: str,
+    cds_features: list[CDSFeature],
+) -> str:
     if mutations == "REF":
         return "REF"
 
@@ -181,7 +342,11 @@ def aa_summary_for_mutations(mutations: str, aa_map: dict[str, str]) -> str:
         if dna_change is None:
             parts.append("NA")
             continue
-        parts.append(aa_map.get(dna_change, "NA"))
+        mapped = aa_map.get(dna_change)
+        if mapped and mapped != "NA":
+            parts.append(mapped)
+            continue
+        parts.append(infer_effect_for_dna_change(dna_change, reference_seq, cds_features))
     return ";".join(parts) if parts else "NA"
 
 
@@ -378,9 +543,15 @@ def main() -> None:
         aa_paths.append(extra_aa_csv)
 
     aa_map = load_aa_annotation_map(aa_paths)
+    cds_features = load_cds_features(Path(args.annotation_gff))
     for row in rows:
         mutations = str(row.get("mutations", ""))
-        row["mutations_aa"] = aa_summary_for_mutations(mutations, aa_map)
+        row["mutations_aa"] = aa_summary_for_mutations(
+            mutations,
+            aa_map,
+            reference_seq,
+            cds_features,
+        )
 
     assign_global_ids(rows)
 

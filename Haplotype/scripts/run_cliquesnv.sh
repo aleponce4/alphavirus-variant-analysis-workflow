@@ -26,9 +26,33 @@ RESERVE_MEM_GB="${RESERVE_MEM_GB:-8}"
 MIN_PRIMARY_READS=10000
 TIME_LIMIT_SECONDS=10800
 TF_VALUES=(0.01)
+CLIQUESNV_TF_VALUES="${CLIQUESNV_TF_VALUES:-}"
+HAP_TABLE_THRESHOLD_LABEL="${HAP_TABLE_THRESHOLD_LABEL:-}"
+
+if [ -n "$CLIQUESNV_TF_VALUES" ]; then
+    TF_VALUES=()
+    for token in ${CLIQUESNV_TF_VALUES//,/ }; do
+        [ -n "$token" ] && TF_VALUES+=("$token")
+    done
+fi
+
+if [ ${#TF_VALUES[@]} -eq 0 ]; then
+    echo "ERROR: no tf thresholds configured (TF_VALUES)"
+    exit 1
+fi
+
+if [ -z "$HAP_TABLE_THRESHOLD_LABEL" ]; then
+    if [ ${#TF_VALUES[@]} -eq 1 ]; then
+        HAP_TABLE_THRESHOLD_LABEL="tf_${TF_VALUES[0]//./p}"
+    else
+        HAP_TABLE_THRESHOLD_LABEL="all"
+    fi
+fi
 
 CLIQUESNV_MODE="snv-illumina"
 CLIQUESNV_T="${CLIQUESNV_T:-10}"
+CLIQUESNV_MIN_MAPQ="${CLIQUESNV_MIN_MAPQ:-30}"
+CLIQUESNV_MAX_NM="${CLIQUESNV_MAX_NM:-5}"
 CLIQUESNV_ENV="${CLIQUESNV_ENV:-env_cliquesnv}"
 VIRAL_CONTIG="${VIRAL_CONTIG:-VEEV_INH}"
 # ────────────────────────────────────────────────────────────
@@ -117,6 +141,8 @@ echo "  CliqueSNV haplotype reconstruction"
 echo "  Mode: ${CLIQUESNV_MODE}"
 echo "  Time limit (s): ${TIME_LIMIT_SECONDS}"
 echo "  tf thresholds: ${TF_VALUES[*]}"
+echo "  Haplotype summary threshold label: ${HAP_TABLE_THRESHOLD_LABEL}"
+echo "  Read filter: MAPQ>=${CLIQUESNV_MIN_MAPQ}, NM<=${CLIQUESNV_MAX_NM}"
 echo "  Min primary reads: ${MIN_PRIMARY_READS}"
 echo "  Samples: ${#SAMPLES[@]}"
 echo "  Output : $OUTDIR"
@@ -220,7 +246,7 @@ process_sample() {
     local PRIMARY_SAM="$SAMPLE_OUT/primary_only.sam"
     local HEADER_SAM="$SAMPLE_OUT/viral_header.sam"
 
-    echo "  1) Filtering to primary alignments ..."
+    echo "  1) Filtering to high-quality primary alignments ..."
     {
         "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@HD"
         "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@SQ" | grep "SN:${VIRAL_CONTIG}"
@@ -228,7 +254,7 @@ process_sample() {
         "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@PG" || true
     } > "$HEADER_SAM"
 
-    "$SAMTOOLS_BIN" view -b -F 0x904 "$SRC_BAM" "$VIRAL_CONTIG" \
+    "$SAMTOOLS_BIN" view -b -F 0x904 -q "$CLIQUESNV_MIN_MAPQ" -e "[NM] <= $CLIQUESNV_MAX_NM" "$SRC_BAM" "$VIRAL_CONTIG" \
         | "$SAMTOOLS_BIN" reheader "$HEADER_SAM" - \
         | "$SAMTOOLS_BIN" sort -o "$PRIMARY_BAM" -
     "$SAMTOOLS_BIN" index "$PRIMARY_BAM"
@@ -341,7 +367,7 @@ echo "Generating haplotype frequency tables ..."
 "$PYTHON_BIN" "$HAP_TABLE_SCRIPT" \
     --cliquesnv-dir "$OUTDIR" \
     --out-dir "$ANALYSIS_DIR" \
-    --threshold-label tf_0p01
+    --threshold-label "$HAP_TABLE_THRESHOLD_LABEL"
 echo "================================================================"
 
 echo "Done! CliqueSNV results are in: $OUTDIR"
