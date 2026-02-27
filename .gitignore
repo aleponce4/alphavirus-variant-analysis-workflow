@@ -60,6 +60,8 @@ SNPGenie/summary/
 
 # Variant pipeline outputs
 Variant_discovery_pipeline/Analysis_output/
+Variant_discovery_pipeline/Analysis_output/*.svg
+Variant_discovery_pipeline/Analysis_output/*.tiff
 
 # Sample data helper file
 bam_head.txt
