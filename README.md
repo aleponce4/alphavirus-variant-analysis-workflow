@@ -1,5 +1,5 @@
 
-# VEEV Variant Discovery Workflow
+# Alphavirus Intra-host Variant Analysis Workflow
 
 Variant calling workflow used for analysis of intra-host viral diversity in deeply sequenced VEEV datasets. This repository provides a standardized execution framework for iVar and LoFreq variant calling with downstream functional annotation and optional haplotype reconstruction.
 
