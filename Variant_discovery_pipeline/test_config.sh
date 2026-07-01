@@ -22,7 +22,7 @@ LOFREQ_ENABLE_INDELQUAL=1              # Correct indel alignment quality
 LOFREQ_BAQ=1                           # Viterbi realignment (fixes alignment artifacts)
 
 # ========== GENERAL SETTINGS ==========
-VIRAL_CONTIG="VEEV_INH"                # Restrict to viral genome only (exclude host)
+TARGET_CONTIG="target_contig"                # Restrict to Target genome only (exclude host)
 THREADS=4                              # [TEST] Reduced from 20 for quick testing
 
 # ========== TEST-SPECIFIC NOTES ==========
@@ -34,3 +34,4 @@ THREADS=4                              # [TEST] Reduced from 20 for quick testin
 #
 # Expected runtime: 2-5 minutes for 2 samples
 # Output: Same structure as production (Ivar/, LoFreq/, Annotated_variants/)
+

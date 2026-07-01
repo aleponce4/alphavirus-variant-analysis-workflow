@@ -4,7 +4,7 @@
 # Local haplotype reconstruction with VILOCA.
 #
 # Per sample it:
-#   1. Filters viral_only.bam to primary alignments only
+#   1. Filters target_only.bam to primary alignments only
 #   2. Runs VILOCA in uniform-window mode
 #
 # Usage:
@@ -29,7 +29,7 @@ PIPELINE_DIR="$(cd "$SCRIPT_DIR/../../Variant_discovery_pipeline" && pwd)"
 OUTDIR="$(cd "$SCRIPT_DIR/.." && pwd)/viloca"
 LOGDIR="$OUTDIR/logs"
 
-REF="$PIPELINE_DIR/Input/Reference/viral_only.fasta"
+REF="$PIPELINE_DIR/Input/Reference/target_only.fasta"
 LOFREQ_DIR="$PIPELINE_DIR/LoFreq"
 
 mkdir -p "$OUTDIR"
@@ -82,12 +82,12 @@ FAILED_SAMPLES=()
 for SAMPLE in "${SAMPLES[@]}"; do
     echo "── $SAMPLE ──────────────────────────────────"
 
-    SRC_BAM="$LOFREQ_DIR/$SAMPLE/viral_only.bam"
+    SRC_BAM="$LOFREQ_DIR/$SAMPLE/target_only.bam"
     SAMPLE_OUT="$OUTDIR/$SAMPLE"
 
     # --- check input ---
     if [ ! -f "$SRC_BAM" ]; then
-        echo "  SKIP: no viral_only.bam found"
+        echo "  SKIP: no target_only.bam found"
         echo ""
         SKIP_COUNT=$((SKIP_COUNT + 1))
         continue
@@ -101,17 +101,17 @@ for SAMPLE in "${SAMPLES[@]}"; do
     PRIMARY_BAM="$SAMPLE_OUT/primary_only.bam"
     echo "  1) Filtering to primary alignments (single-contig BAM) ..."
 
-    # Build a minimal header with only the viral contig
-    VIRAL_CONTIG="VEEV_INH"
+    # Build a minimal header with only the Target contig
+    TARGET_CONTIG="${TARGET_CONTIG:-}"
     {
         samtools view -H "$SRC_BAM" | grep "^@HD"
-        samtools view -H "$SRC_BAM" | grep "^@SQ" | grep "SN:${VIRAL_CONTIG}"
+        samtools view -H "$SRC_BAM" | grep "^@SQ" | grep "SN:${TARGET_CONTIG}"
         samtools view -H "$SRC_BAM" | grep "^@RG"
         samtools view -H "$SRC_BAM" | grep "^@PG"
-    } > "$SAMPLE_OUT/viral_header.sam"
+    } > "$SAMPLE_OUT/target_header.sam"
 
-    samtools view -b -F 0x904 "$SRC_BAM" "$VIRAL_CONTIG" \
-        | samtools reheader "$SAMPLE_OUT/viral_header.sam" - \
+    samtools view -b -F 0x904 "$SRC_BAM" "$TARGET_CONTIG" \
+        | samtools reheader "$SAMPLE_OUT/target_header.sam" - \
         | samtools sort -o "$PRIMARY_BAM" -
     samtools index "$PRIMARY_BAM"
 
@@ -169,3 +169,4 @@ echo "  haplotypes/                → local haplotype FASTAs"
 echo "  cooccurring_mutations.csv  → mutation linkage"
 echo "  coverage.txt               → per-window read counts"
 echo "================================================================"
+

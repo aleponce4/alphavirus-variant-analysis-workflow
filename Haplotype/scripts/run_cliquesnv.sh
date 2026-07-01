@@ -4,7 +4,7 @@
 # Local haplotype reconstruction with CliqueSNV (Illumina mode).
 #
 # Per sample it:
-#   1. Filters viral_only.bam to primary alignments only
+#   1. Filters target_only.bam to primary alignments only
 #   2. Converts BAM -> SAM (CliqueSNV Illumina expects SAM input)
 #   3. Runs CliqueSNV for multiple tf thresholds
 #   4. Writes brief per-sample summary table
@@ -54,7 +54,7 @@ CLIQUESNV_T="${CLIQUESNV_T:-10}"
 CLIQUESNV_MIN_MAPQ="${CLIQUESNV_MIN_MAPQ:-30}"
 CLIQUESNV_MAX_NM="${CLIQUESNV_MAX_NM:-5}"
 CLIQUESNV_ENV="${CLIQUESNV_ENV:-env_cliquesnv}"
-VIRAL_CONTIG="${VIRAL_CONTIG:-VEEV_INH}"
+TARGET_CONTIG="${TARGET_CONTIG:-}"
 # ────────────────────────────────────────────────────────────
 
 # ── Paths ───────────────────────────────────────────────────
@@ -231,12 +231,12 @@ process_sample() {
 
     echo "── $SAMPLE ──────────────────────────────────"
 
-    local SRC_BAM="$LOFREQ_DIR/$SAMPLE/viral_only.bam"
+    local SRC_BAM="$LOFREQ_DIR/$SAMPLE/target_only.bam"
     local SAMPLE_OUT="$OUTDIR/$SAMPLE"
 
     if [ ! -f "$SRC_BAM" ]; then
-        echo "  SKIP: no viral_only.bam found"
-        printf "SKIP\tno_viral_only_bam\n" > "$STATUS_FILE"
+        echo "  SKIP: no target_only.bam found"
+        printf "SKIP\ttarget_only_bam_missing\n" > "$STATUS_FILE"
         return 0
     fi
 
@@ -244,17 +244,17 @@ process_sample() {
 
     local PRIMARY_BAM="$SAMPLE_OUT/primary_only.bam"
     local PRIMARY_SAM="$SAMPLE_OUT/primary_only.sam"
-    local HEADER_SAM="$SAMPLE_OUT/viral_header.sam"
+    local HEADER_SAM="$SAMPLE_OUT/target_header.sam"
 
     echo "  1) Filtering to high-quality primary alignments ..."
     {
         "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@HD"
-        "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@SQ" | grep "SN:${VIRAL_CONTIG}"
+        "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@SQ" | grep "SN:${TARGET_CONTIG}"
         "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@RG" || true
         "$SAMTOOLS_BIN" view -H "$SRC_BAM" | grep "^@PG" || true
     } > "$HEADER_SAM"
 
-    "$SAMTOOLS_BIN" view -b -F 0x904 -q "$CLIQUESNV_MIN_MAPQ" -e "[NM] <= $CLIQUESNV_MAX_NM" "$SRC_BAM" "$VIRAL_CONTIG" \
+    "$SAMTOOLS_BIN" view -b -F 0x904 -q "$CLIQUESNV_MIN_MAPQ" -e "[NM] <= $CLIQUESNV_MAX_NM" "$SRC_BAM" "$TARGET_CONTIG" \
         | "$SAMTOOLS_BIN" reheader "$HEADER_SAM" - \
         | "$SAMTOOLS_BIN" sort -o "$PRIMARY_BAM" -
     "$SAMTOOLS_BIN" index "$PRIMARY_BAM"
@@ -273,7 +273,7 @@ process_sample() {
     "$SAMTOOLS_BIN" view -h "$PRIMARY_BAM" > "$PRIMARY_SAM"
 
     local AVG_DEPTH
-    AVG_DEPTH=$("$SAMTOOLS_BIN" depth -aa -r "$VIRAL_CONTIG" "$PRIMARY_BAM" \
+    AVG_DEPTH=$("$SAMTOOLS_BIN" depth -aa -r "$TARGET_CONTIG" "$PRIMARY_BAM" \
         | awk '{sum += $3; n += 1} END {if (n > 0) printf "%.2f", sum / n; else print "0"}')
 
     echo "  2b) Mean depth: ${AVG_DEPTH}x"
@@ -382,3 +382,4 @@ echo "  tf_0p01/                                 → threshold-specific results"
 echo "  Analysis/cliquesnv_brief_per_sample.tsv  → concise summary"
 echo "  Analysis/cliquesnv_haplotype_*.csv       → haplotype summaries"
 echo "================================================================"
+

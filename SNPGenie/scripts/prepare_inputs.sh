@@ -14,15 +14,15 @@ MANIFEST_DIR="${INPUT_DIR}/manifest"
 
 mkdir -p "${REF_DIR}" "${VCF_DIR}" "${MANIFEST_DIR}"
 
-FASTA_SRC="${REF_SRC_DIR}/viral_only.fasta"
-GFF3_SRC="${REF_SRC_DIR}/VEEV_INH_fromGenbank.gff3"
-GTF_OUT="${REF_DIR}/VEEV_INH_fromGenbank.gtf"
+FASTA_SRC="${REF_SRC_DIR}/target_only.fasta"
+GFF3_SRC="${REF_SRC_DIR}/target_reference.gff3"
+GTF_OUT="${REF_DIR}/target_reference.gtf"
 
-cp -f "${FASTA_SRC}" "${REF_DIR}/viral_only.fasta"
-cp -f "${GFF3_SRC}" "${REF_DIR}/VEEV_INH_fromGenbank.gff3"
+cp -f "${FASTA_SRC}" "${REF_DIR}/target_only.fasta"
+cp -f "${GFF3_SRC}" "${REF_DIR}/target_reference.gff3"
 
 python3 "${ROOT_DIR}/scripts/convert_gff3_to_gtf.py" \
-  --gff3 "${REF_DIR}/VEEV_INH_fromGenbank.gff3" \
+  --gff3 "${REF_DIR}/target_reference.gff3" \
   --gtf "${GTF_OUT}"
 
 MANIFEST_FILE="${MANIFEST_DIR}/samples.tsv"
@@ -53,3 +53,5 @@ done
 
 echo "Prepared ${sample_count} samples."
 echo "Manifest: ${MANIFEST_FILE}"
+
+

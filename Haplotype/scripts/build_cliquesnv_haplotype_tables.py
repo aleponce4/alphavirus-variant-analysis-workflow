@@ -26,17 +26,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--reference-fasta",
-        default="SNPGenie/input/reference/viral_only.fasta",
+        default="SNPGenie/input/reference/target_only.fasta",
         help="Reference FASTA used to call haplotype mutations.",
     )
     parser.add_argument(
         "--aa-annotation-csv",
-        default="Variant_discovery_pipeline/Analysis_output/VEEV_LoFreq_mutations.csv",
+        default="Variant_discovery_pipeline/Analysis_output/target_LoFreq_mutations.csv",
         help="CSV containing DNA_Change to amino-acid annotation mapping.",
     )
     parser.add_argument(
         "--annotation-gff",
-        default="Variant_discovery_pipeline/Input/Reference/VEEV_INH_fromGenbank.gff3",
+        default="Variant_discovery_pipeline/Input/Reference/target_reference.gff3",
         help="GFF3 annotation used for CDS-based AA fallback when DNA_Change is not in CSV map.",
     )
     parser.add_argument(
@@ -537,7 +537,7 @@ def main() -> None:
     )
 
     primary_aa_csv = Path(args.aa_annotation_csv)
-    extra_aa_csv = primary_aa_csv.parent / "VEEV_variants_LoFreq.csv"
+    extra_aa_csv = primary_aa_csv.parent / "target_variants_LoFreq.csv"
     aa_paths = [primary_aa_csv]
     if extra_aa_csv != primary_aa_csv:
         aa_paths.append(extra_aa_csv)
@@ -573,3 +573,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+

@@ -1,12 +1,12 @@
-# SNPGenie analysis for VEEV INH-9813 dataset
+# SNPGenie analysis for TARGET INH-9813 dataset
 
 This folder contains a reproducible SNPGenie workflow for 12 LoFreq-called samples
 from `Variant_discovery_pipeline/LoFreq`.
 
 ## Inputs used
 
-- Reference FASTA: `Variant_discovery_pipeline/Input/Reference/viral_only.fasta`
-- Annotation GFF3: `Variant_discovery_pipeline/Input/Reference/VEEV_INH_fromGenbank.gff3`
+- Reference FASTA: `Variant_discovery_pipeline/Input/Reference/target_only.fasta`
+- Annotation GFF3: `Variant_discovery_pipeline/Input/Reference/target_reference.gff3`
 - Variant source: `Variant_discovery_pipeline/LoFreq/*/variants.filtered.vcf.gz`
 
 The GFF3 is converted to a SNPGenie-compatible GTF in `input/reference/`.
@@ -90,3 +90,4 @@ pip install scipy
 
  Detailed and intermediate outputs can be kept in:
  - `analysis/delta_selection/detailed/`
+

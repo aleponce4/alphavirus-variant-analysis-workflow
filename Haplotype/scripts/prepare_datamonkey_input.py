@@ -29,7 +29,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--gff",
-        default="Variant_discovery_pipeline/Input/Reference/VEEV_INH_fromGenbank.gff3",
+        default="Variant_discovery_pipeline/Input/Reference/target_reference.gff3",
         help="GFF3 file with CDS coordinates and gene_name attributes.",
     )
     parser.add_argument(
@@ -58,7 +58,7 @@ def parse_args() -> argparse.Namespace:
         default="",
         help=(
             "Optional genomic coordinate range to mask as NNN before stop checks, "
-            "e.g. 5682-5684 for VEEV nsP3 opal readthrough codon."
+            "e.g. 5682-5684 for TARGET nsP3 opal readthrough codon."
         ),
     )
     return parser.parse_args()
@@ -270,3 +270,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

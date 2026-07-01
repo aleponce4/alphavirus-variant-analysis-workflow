@@ -23,8 +23,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PIPELINE_DIR="$(cd "$SCRIPT_DIR/../../Variant_discovery_pipeline" && pwd)"
 OUTDIR="$(cd "$SCRIPT_DIR/.." && pwd)/consensus"
 
-REF="$PIPELINE_DIR/Input/Reference/viral_only.fasta"   # viral contig only
-VIRAL_CONTIG="VEEV_INH"                                # contig name in ref
+REF="$PIPELINE_DIR/Input/Reference/target_only.fasta"   # Target contig only
+TARGET_CONTIG="${TARGET_CONTIG:-}"                      # contig name in ref (defaults to config/default)
 LOFREQ_DIR="$PIPELINE_DIR/LoFreq"
 BAM_DIR="$PIPELINE_DIR/Input/BAMs"
 
@@ -66,11 +66,11 @@ for SAMPLE in "${SAMPLES[@]}"; do
     VCF="$LOFREQ_DIR/$SAMPLE/variants.filtered.vcf.gz"
     OUT_FASTA="$OUTDIR/${SAMPLE}.consensus.fasta"
 
-    # Prefer the small viral-only BAM from the LoFreq run (much faster)
-    VIRAL_BAM="$LOFREQ_DIR/$SAMPLE/viral_only.bam"
+    # Prefer the small Target-only BAM from the LoFreq run (much faster)
+    TARGET_BAM="$LOFREQ_DIR/$SAMPLE/target_only.bam"
     FULL_BAM="$BAM_DIR/${SAMPLE}.bam"
-    if [ -f "$VIRAL_BAM" ]; then
-        BAM="$VIRAL_BAM"
+    if [ -f "$TARGET_BAM" ]; then
+        BAM="$TARGET_BAM"
     else
         BAM="$FULL_BAM"
     fi
@@ -102,9 +102,9 @@ for SAMPLE in "${SAMPLES[@]}"; do
     echo "     → $NVAR variants pass AF threshold"
     echo "     → $AF_DROPPED variants removed by AF filter"
 
-    # 2. Mask low-depth positions to N  (viral contig only)
+    # 2. Mask low-depth positions to N  (Target contig only)
     echo "  2) Building depth mask  (depth < $MIN_DEPTH) ..."
-    samtools depth -aa -r "$VIRAL_CONTIG" "$BAM" \
+    samtools depth -aa -r "$TARGET_CONTIG" "$BAM" \
         | awk -v min="$MIN_DEPTH" '$3 < min {print $1"\t"($2-1)"\t"$2}' \
         > "$TMPDIR/lowdepth.bed"
 
@@ -213,3 +213,4 @@ PY
 done
 
 echo "Done! Consensus files are in: $OUTDIR"
+

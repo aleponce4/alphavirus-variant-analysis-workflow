@@ -1,9 +1,9 @@
 
-# Pathogen Intra-host Variant Analysis Workflow
+# Alphavirus Intra-host Variant Analysis Workflow
 
-Variant calling workflow used for analysis of intra-host Target diversity in deeply sequenced TARGET datasets. This repository provides a standardized execution framework for iVar and LoFreq variant calling with downstream functional annotation and optional haplotype reconstruction.
+Variant calling workflow used for analysis of intra-host viral diversity in deeply sequenced VEEV datasets. This repository provides a standardized execution framework for iVar and LoFreq variant calling with downstream functional annotation and optional haplotype reconstruction.
 
-The workflow was developed to support consistent processing of Target sequencing datasets and facilitate comparison of variant calls across samples and timepoints.
+The workflow was developed to support consistent processing of viral sequencing datasets and facilitate comparison of variant calls across samples and timepoints.
 
 ## Overview
 
@@ -28,7 +28,7 @@ source config.sh
 ./run_stage1.sh --mode bam --manifest work/stage1/manifest/sample_inputs.tsv
 
 # FASTQ mode
-./run_stage1.sh --mode fastq --reference Input/Reference/inh.fasta --threads 20 --target-contig target_contig
+./run_stage1.sh --mode fastq --reference Input/Reference/inh.fasta --threads 20 --viral-contig VEEV_INH
 
 # Legacy module flow (compatible)
 ./Scripts/check_inputs.sh
@@ -44,5 +44,3 @@ source config.sh
 - `work/stage1/stage1_report.tsv` (run summary metrics)
 
 `sample_id, stage, status, start_ts, end_ts, error` are the run-status columns.
-
-

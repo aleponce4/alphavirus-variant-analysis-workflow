@@ -1,8 +1,8 @@
 import csv
 from collections import defaultdict
 
-entropy_path = '../Analysis_output/VEEV_entropy_genome_DPI3_DPI5.csv'
-mut_path = '../Analysis_output/VEEV_LoFreq_mutations.csv'
+entropy_path = '../Analysis_output/target_entropy_genome_DPI3_DPI5.csv'
+mut_path = '../Analysis_output/target_LoFreq_mutations.csv'
 
 bases = ['A', 'C', 'G', 'T']
 acc = defaultdict(lambda: {'sumA': 0.0, 'sumC': 0.0, 'sumG': 0.0, 'sumT': 0.0, 'n': 0})

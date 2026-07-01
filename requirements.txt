@@ -1,4 +1,4 @@
-# Python dependencies for the VEEV analysis pipeline
+# Python dependencies for the TARGET analysis pipeline
 pandas>=2.0
 numpy>=1.26
 scipy>=1.10
@@ -15,3 +15,4 @@ git+https://github.com/chasewnelson/SNPGenie.git#egg=SNPGenie
 #   conda env create -f envs/annotation-env.yml
 #   conda env create -f envs/env_cliquesnv.yml
 #   conda env create -f envs/env_viloca.yml
+

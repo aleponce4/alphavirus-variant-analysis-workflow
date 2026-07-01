@@ -70,8 +70,8 @@ def write_vcf_header(output_file, reference_file, sample_name):
         f.write("##FILTER=<ID=PASS,Description=\"All filters passed\">\n")
         f.write("##FILTER=<ID=FAIL,Description=\"Failed quality filters\">\n")
         
-        # Contig header for viral reference
-        f.write("##contig=<ID=VEEV_INH>\n")
+        # Contig header for target reference
+        f.write("##contig=<ID=target_contig>\n")
         
         # Column headers
         f.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{}\n".format(sample_name))

@@ -7,7 +7,7 @@ conda activate ivar_env 2>/dev/null || conda activate lofreq-env 2>/dev/null || 
 
 INPUT_DIR="Input/BAMs"
 OUTPUT_DIR="Input/Coverage"
-VIRAL_CONTIG="VEEV_INH"
+TARGET_CONTIG="${TARGET_CONTIG:-target_contig}"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -18,7 +18,7 @@ for bam_file in "$INPUT_DIR"/*.bam; do
     output_file="$OUTPUT_DIR/${sample_name}_coverage.txt"
     
     echo "Processing: $sample_name"
-    samtools depth -a -r "$VIRAL_CONTIG" "$bam_file" > "$output_file"
+    samtools depth -a -r "$TARGET_CONTIG" "$bam_file" > "$output_file"
 done
 
 echo "✓ Done. Coverage files saved in $OUTPUT_DIR/"
