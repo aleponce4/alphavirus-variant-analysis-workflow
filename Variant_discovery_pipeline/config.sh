@@ -19,7 +19,9 @@ LOFREQ_MIN_BASE_QUALITY=30       # require alt-supporting bases to have Phred Qâ
 LOFREQ_MIN_MAP_QUALITY=60        # use only uniquely mapped reads with MAPQ 60 (99.9999% confident in mapping)
 LOFREQ_CALL_SIG=0.01             # raw p-value cutoff from LoFreq's binomial test
 LOFREQ_ENABLE_INDELQUAL=1        # correct base alignment quality around indels
+# NOTE: Set to 0 for RNA-seq data (STAR spliced alignments with CIGAR 'N' crash lofreq indelqual)
 LOFREQ_BAQ=1                     # enable BAQ adjustment, suppresses false SNP calls caused by alignment artifacts
+# NOTE: Set to 0 for RNA-seq data (STAR spliced alignments with CIGAR 'N' crash lofreq viterbi)
 
 # General settings
 THREADS=20                       # number of threads to use for parallelizable steps

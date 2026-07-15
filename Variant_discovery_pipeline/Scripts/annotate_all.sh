@@ -35,6 +35,14 @@ if [ ! -f "$ANNOTATION" ]; then
     exit 1
 fi
 
+# Validate that GFF3 contains CDS features (required by bcftools csq)
+if ! grep -q "\bCDS\b" "$ANNOTATION" 2>/dev/null; then
+    echo "ERROR: No CDS features found in $ANNOTATION"
+    echo "  bcftools csq requires CDS features for amino acid consequence prediction"
+    echo "  Ensure the GFF3 is in Ensembl format with gene/mRNA/CDS/exon features"
+    exit 1
+fi
+
 echo "Files validated. Starting annotation..."
 
 # Function to annotate LoFreq files (bcftools needs a GFF even with --local-csq)
