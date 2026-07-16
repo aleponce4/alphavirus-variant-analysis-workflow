@@ -142,3 +142,92 @@ fi
     echo "  Finished: $(date)"
     echo "========================================================"
 } | tee -a "$MASTER_LOG"
+
+# ── Sync results back to Windows workspace (lightweight files only) ────
+source "$SCRIPT_DIR/config.sh"
+if [ "$RESULTS_DIR" != "$VARIANT_ROOT/results/$DATASET" ]; then
+    echo "" | tee -a "$MASTER_LOG"
+    echo ">>> Generating run summary report..." | tee -a "$MASTER_LOG"
+    (
+        eval "$(conda shell.bash hook)"
+        conda activate annotation-env
+        python3 "$SCRIPT_DIR/Scripts/Helpers/generate_run_summary.py" \
+            --results-dir "$RESULTS_DIR" \
+            --manifest "$VARIANT_ROOT/config/samples_manifest.tsv" \
+            --dataset "$DATASET"
+
+        python3 "$SCRIPT_DIR/Scripts/Helpers/generate_variant_plots.py" \
+            --results-dir "$RESULTS_DIR" \
+            --manifest "$VARIANT_ROOT/config/samples_manifest.tsv" \
+            --gff3 "${REFERENCE%.fasta}.gff3" \
+            --dataset "$DATASET"
+
+        python3 "$SCRIPT_DIR/Scripts/Helpers/generate_coverage_plots.py" \
+            --results-dir "$RESULTS_DIR" \
+            --manifest "$VARIANT_ROOT/config/samples_manifest.tsv" \
+            --gff3 "${REFERENCE%.fasta}.gff3" \
+            --dataset "$DATASET"
+    ) 2>&1 | tee -a "$MASTER_LOG"
+
+    echo "" | tee -a "$MASTER_LOG"
+    echo ">>> Syncing lightweight results to Windows workspace..." | tee -a "$MASTER_LOG"
+    echo "    Source: $RESULTS_DIR" | tee -a "$MASTER_LOG"
+    echo "    Target: $VARIANT_ROOT/results/$DATASET" | tee -a "$MASTER_LOG"
+    
+    WINDOWS_RESULTS="$VARIANT_ROOT/results/$DATASET"
+    mkdir -p "$WINDOWS_RESULTS/Annotated_variants" "$WINDOWS_RESULTS/Coverage" "$WINDOWS_RESULTS/SNPGenie" "$WINDOWS_RESULTS/LoFreq" "$WINDOWS_RESULTS/tables" "$WINDOWS_RESULTS/Plots"
+    
+    # Copy consolidated summaries
+    cp -f "$RESULTS_DIR/consolidated_sample_summary.tsv" "$WINDOWS_RESULTS/" 2>/dev/null || true
+    cp -f "$RESULTS_DIR/run_summary_report.md" "$WINDOWS_RESULTS/" 2>/dev/null || true
+
+    # Copy tables and Plots
+    cp -rf "$RESULTS_DIR/tables/"* "$WINDOWS_RESULTS/tables/" 2>/dev/null || true
+    cp -rf "$RESULTS_DIR/Plots/"* "$WINDOWS_RESULTS/Plots/" 2>/dev/null || true
+
+    # Copy Annotated variants, Coverage summaries, and SNPGenie selection analyses
+    cp -rf "$RESULTS_DIR/Annotated_variants/"* "$WINDOWS_RESULTS/Annotated_variants/" 2>/dev/null || true
+    cp -rf "$RESULTS_DIR/Coverage/"* "$WINDOWS_RESULTS/Coverage/" 2>/dev/null || true
+    cp -rf "$RESULTS_DIR/SNPGenie/"* "$WINDOWS_RESULTS/SNPGenie/" 2>/dev/null || true
+    
+    # Copy LoFreq VCFs and QC stats (skipping the heavy BAM files)
+    for sample_dir in "$RESULTS_DIR/LoFreq"/*/; do
+        if [ -d "$sample_dir" ]; then
+            sample=$(basename "$sample_dir")
+            mkdir -p "$WINDOWS_RESULTS/LoFreq/$sample"
+            cp -f "$sample_dir/variants.filtered.vcf.gz"* "$WINDOWS_RESULTS/LoFreq/$sample/" 2>/dev/null || true
+            cp -f "$sample_dir/qc_stats.txt" "$WINDOWS_RESULTS/LoFreq/$sample/" 2>/dev/null || true
+        fi
+    done
+    
+    # Sync Haplotypes if executed
+    if [ -d "$RESULTS_DIR/CliqueSNV" ]; then
+        mkdir -p "$WINDOWS_RESULTS/CliqueSNV"
+        cp -rf "$RESULTS_DIR/CliqueSNV/Analysis" "$WINDOWS_RESULTS/CliqueSNV/" 2>/dev/null || true
+        for sample_dir in "$RESULTS_DIR/CliqueSNV"/*/; do
+            if [ -d "$sample_dir" ] && [ "$(basename "$sample_dir")" != "logs" ] && [ "$(basename "$sample_dir")" != "Analysis" ]; then
+                sample=$(basename "$sample_dir")
+                mkdir -p "$WINDOWS_RESULTS/CliqueSNV/$sample"
+                cp -rf "$sample_dir/tf_"* "$WINDOWS_RESULTS/CliqueSNV/$sample/" 2>/dev/null || true
+            fi
+        done
+    fi
+    
+    if [ -d "$RESULTS_DIR/VILOCA" ]; then
+        mkdir -p "$WINDOWS_RESULTS/VILOCA"
+        for sample_dir in "$RESULTS_DIR/VILOCA"/*/; do
+            if [ -d "$sample_dir" ] && [ "$(basename "$sample_dir")" != "logs" ]; then
+                sample=$(basename "$sample_dir")
+                mkdir -p "$WINDOWS_RESULTS/VILOCA/$sample"
+                cp -f "$sample_dir/cooccurring_mutations.csv" "$WINDOWS_RESULTS/VILOCA/$sample/" 2>/dev/null || true
+                cp -f "$sample_dir/coverage.txt" "$WINDOWS_RESULTS/VILOCA/$sample/" 2>/dev/null || true
+            fi
+        done
+    fi
+    
+    # Copy master pipeline log
+    cp -f "$MASTER_LOG" "$WINDOWS_RESULTS/"
+    echo "    Sync complete! Final reports are now visible in Windows at:" | tee -a "$MASTER_LOG"
+    echo "    $WINDOWS_RESULTS" | tee -a "$MASTER_LOG"
+    echo "========================================================" | tee -a "$MASTER_LOG"
+fi
