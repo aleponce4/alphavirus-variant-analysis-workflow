@@ -410,24 +410,24 @@ def main() -> None:
     # Overlay gene boundaries in top header annotation band (above 100% frequency)
     if gene_positions:
         ax.axhline(100, color='gray', linestyle='--', linewidth=0.8, zorder=2)
-        stagger_map = {'E3': 220, '6K': 220, 'TF': 220}
+        stagger_map = {'E3': 136, '6K': 136, 'TF': 136}
         
         for gene, info in gene_positions.items():
             ax.axvline(info['start'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
             ax.axvline(info['end'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
             
             mid = (info['start'] + info['end']) / 2
-            y_pos = stagger_map.get(gene, 140)
+            y_pos = stagger_map.get(gene, 115)
             
-            ax.text(mid, y_pos, gene, ha='center', va='center', fontsize=7.5, fontweight='bold', zorder=5,
-                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.9, edgecolor='#94A3B8', linewidth=0.6))
+            ax.text(mid, y_pos, gene, ha='center', va='center', fontsize=7, fontweight='bold', zorder=5,
+                    bbox=dict(boxstyle='round,pad=0.15', facecolor='white', alpha=0.9, edgecolor='#94A3B8', linewidth=0.5))
                     
     ax.set_xlabel('Nucleotide Position', fontsize=8, fontweight='bold')
     ax.set_ylabel('Variant Frequency (%)', fontsize=8, fontweight='bold')
     ax.set_title(format_lab_title(dataset, "Variant Frequency Distribution"), fontsize=9, fontweight='bold')
     ax.set_xlim(0, genome_end + 100)
     ax.set_yscale('log')
-    ax.set_ylim(0.8, 300)
+    ax.set_ylim(0.8, 160)
     
     import matplotlib.ticker as ticker
     ax.set_yticks([1, 10, 100])
@@ -468,24 +468,24 @@ def main() -> None:
                         
     # Overlay gene boundaries in top header space
     if gene_positions:
-        ax.axhline(0.6, color='gray', linestyle='--', linewidth=0.8, zorder=2)
-        stagger_map = {'E3': 0.76, '6K': 0.76, 'TF': 0.76}
+        ax.axhline(0.60, color='gray', linestyle='--', linewidth=0.8, zorder=2)
+        stagger_map = {'E3': 0.69, '6K': 0.69, 'TF': 0.69}
         
         for gene, info in gene_positions.items():
             ax.axvline(info['start'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
             ax.axvline(info['end'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
             
             mid = (info['start'] + info['end']) / 2
-            y_pos = stagger_map.get(gene, 0.66)
+            y_pos = stagger_map.get(gene, 0.63)
             
-            ax.text(mid, y_pos, gene, ha='center', va='center', fontsize=7.5, fontweight='bold', zorder=5,
-                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.9, edgecolor='#94A3B8', linewidth=0.6))
+            ax.text(mid, y_pos, gene, ha='center', va='center', fontsize=7, fontweight='bold', zorder=5,
+                    bbox=dict(boxstyle='round,pad=0.15', facecolor='white', alpha=0.9, edgecolor='#94A3B8', linewidth=0.5))
                     
     ax.set_xlabel('Nucleotide Position', fontsize=8, fontweight='bold')
     ax.set_ylabel('Shannon Entropy (nats)', fontsize=8, fontweight='bold')
     ax.set_title(format_lab_title(dataset, "Viral Population Diversity (Shannon Entropy)"), fontsize=9, fontweight='bold')
     ax.set_xlim(0, genome_end + 100)
-    ax.set_ylim(0, 0.85)
+    ax.set_ylim(0, 0.73)
     ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left", frameon=True, edgecolor='black', fancybox=False, fontsize=8)
     
     apply_plot_theme(ax)
