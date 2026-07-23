@@ -433,7 +433,7 @@ def save_workbook_safely(wb: openpyxl.Workbook, output_path: Path):
         print(f"  [OK] Saved updated copy to: {alt_path}")
 
 def export_dataset_to_excel(tsv_path: Path, output_excel_path: Path, dataset_name: str):
-    """Builds a complete, formatted Excel workbook with multiple tabs for a given dataset."""
+    """Builds a complete, clean, formatted Excel workbook for a given dataset."""
     print(f"Processing dataset '{dataset_name}' from: {tsv_path}")
     df = prepare_enhanced_dataframe(tsv_path)
     
@@ -441,48 +441,16 @@ def export_dataset_to_excel(tsv_path: Path, output_excel_path: Path, dataset_nam
     default_sheet = wb.active
     wb.remove(default_sheet)
     
-    # 1. Study Overview & QC Stats Tab
+    # 1. Study Overview & QC Tab
     create_summary_sheet(wb, df, dataset_name)
     
-    # 2. All Variants Tab
+    # 2. All Variants Tab (Auto-filters enabled for easy custom filtering)
     ws_all = wb.create_sheet(title="All Variants")
     for r in dataframe_to_rows(df, index=False, header=True):
         ws_all.append(r)
     style_worksheet(ws_all)
     
-    # 3. Nonsynonymous Tab
-    df_nonsyn = df[df['Mutation Type'].isin(['nonsynonymous', 'missense'])]
-    if not df_nonsyn.empty:
-        ws_nonsyn = wb.create_sheet(title="Nonsynonymous Mutations")
-        for r in dataframe_to_rows(df_nonsyn, index=False, header=True):
-            ws_nonsyn.append(r)
-        style_worksheet(ws_nonsyn)
-        
-    # 4. Synonymous Tab
-    df_syn = df[df['Mutation Type'] == 'synonymous']
-    if not df_syn.empty:
-        ws_syn = wb.create_sheet(title="Synonymous Mutations")
-        for r in dataframe_to_rows(df_syn, index=False, header=True):
-            ws_syn.append(r)
-        style_worksheet(ws_syn)
-        
-    # 5. Major Variants (VAF >= 5%)
-    df_major = df[df['Variant Allele Frequency (%)'] >= 0.05]
-    if not df_major.empty:
-        ws_major = wb.create_sheet(title="Major Variants (VAF >= 5%)")
-        for r in dataframe_to_rows(df_major, index=False, header=True):
-            ws_major.append(r)
-        style_worksheet(ws_major)
-
-    # 6. Minor Variants (VAF < 5%)
-    df_minor = df[df['Variant Allele Frequency (%)'] < 0.05]
-    if not df_minor.empty:
-        ws_minor = wb.create_sheet(title="Minor Variants (VAF < 5%)")
-        for r in dataframe_to_rows(df_minor, index=False, header=True):
-            ws_minor.append(r)
-        style_worksheet(ws_minor)
-
-    # 7. Dedicated E2-K3E Audit Tab for VEEV
+    # 3. Dedicated E2-K3E Audit Tab for VEEV
     if "veev" in dataset_name.lower():
         build_e2_k3e_audit_sheet(wb, tsv_path.parent.parent.parent, dataset_name)
 
@@ -521,46 +489,16 @@ def main():
         wb = openpyxl.Workbook()
         wb.remove(wb.active)
         
+        # 1. Master Study Overview & QC
         create_summary_sheet(wb, combined_df, "All Alphavirus Datasets Combined")
         
+        # 2. All Datasets Variants (Auto-filters enabled)
         ws_master = wb.create_sheet(title="All Datasets Variants")
         for r in dataframe_to_rows(combined_df, index=False, header=True):
             ws_master.append(r)
         style_worksheet(ws_master)
-        
-        # Master Nonsynonymous Tab
-        df_nonsyn_all = combined_df[combined_df['Mutation Type'].isin(['nonsynonymous', 'missense'])]
-        if not df_nonsyn_all.empty:
-            ws_n_master = wb.create_sheet(title="Master Nonsynonymous")
-            for r in dataframe_to_rows(df_nonsyn_all, index=False, header=True):
-                ws_n_master.append(r)
-            style_worksheet(ws_n_master)
-            
-        # Master Synonymous Tab
-        df_syn_all = combined_df[combined_df['Mutation Type'] == 'synonymous']
-        if not df_syn_all.empty:
-            ws_s_master = wb.create_sheet(title="Master Synonymous")
-            for r in dataframe_to_rows(df_syn_all, index=False, header=True):
-                ws_s_master.append(r)
-            style_worksheet(ws_s_master)
-            
-        # Master Major Variants (VAF >= 5%)
-        df_major_all = combined_df[combined_df['Variant Allele Frequency (%)'] >= 0.05]
-        if not df_major_all.empty:
-            ws_maj_master = wb.create_sheet(title="Master Major (VAF >= 5%)")
-            for r in dataframe_to_rows(df_major_all, index=False, header=True):
-                ws_maj_master.append(r)
-            style_worksheet(ws_maj_master)
 
-        # Master Minor Variants (VAF < 5%)
-        df_minor_all = combined_df[combined_df['Variant Allele Frequency (%)'] < 0.05]
-        if not df_minor_all.empty:
-            ws_min_master = wb.create_sheet(title="Master Minor (VAF < 5%)")
-            for r in dataframe_to_rows(df_minor_all, index=False, header=True):
-                ws_min_master.append(r)
-            style_worksheet(ws_min_master)
-
-        # VEEV E2-K3E Audit Tab in Master
+        # 3. VEEV E2-K3E Audit Tab in Master
         build_e2_k3e_audit_sheet(wb, base_dir, "mouse_veev")
             
         save_workbook_safely(wb, master_excel_out)
