@@ -210,26 +210,28 @@ def main() -> None:
                         
         max_depth_plotted = max(max_depth_plotted, (subset['mean'] + sem_vals).max())
         
-    # Overlay gene boundaries in log space
+    # Overlay gene boundaries in top header space above maximum depth
     if gene_positions:
-        import math
         safe_max = max(1.0, max_depth_plotted)
-        ymin_log = math.log10(0.8)
-        ymax_log = math.log10(safe_max * 1.5)
-        label_y = 10 ** (ymin_log + (ymax_log - ymin_log) * 0.93)
+        ax.axhline(safe_max, color='gray', linestyle='--', linewidth=0.8, zorder=2)
+        stagger_map = {'E3': safe_max * 1.15, '6K': safe_max * 1.15, 'TF': safe_max * 1.15}
         
         for gene, info in gene_positions.items():
-            ax.axvline(info['start'], color='gray', linewidth=0.5, alpha=0.3, zorder=1)
+            ax.axvline(info['start'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
+            ax.axvline(info['end'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
+            
             mid = (info['start'] + info['end']) / 2
-            ax.text(mid, label_y, gene, ha='center', va='top', fontsize=8, fontweight='bold', zorder=4,
-                    bbox=dict(boxstyle='round,pad=0.15', facecolor='white', alpha=0.85, edgecolor='none'))
+            y_pos = stagger_map.get(gene, safe_max * 1.05)
+            
+            ax.text(mid, y_pos, gene, ha='center', va='center', fontsize=7, fontweight='bold', zorder=5,
+                    bbox=dict(boxstyle='round,pad=0.12', facecolor='white', alpha=0.9, edgecolor='#94A3B8', linewidth=0.5))
                     
     ax.set_xlabel('Nucleotide Position', fontsize=8, fontweight='bold')
     ax.set_ylabel('Sequencing Depth', fontsize=8, fontweight='bold')
     ax.set_title(format_lab_title(dataset, "Viral Genome Coverage Depth"), fontsize=9, fontweight='bold')
     ax.set_xlim(0, genome_end + 100)
     ax.set_yscale('log')
-    ax.set_ylim(0.8, max_depth_plotted * 1.5)
+    ax.set_ylim(0.8, max_depth_plotted * 1.25)
     
     import matplotlib.ticker as ticker
     # Setup custom log ticks for depth (e.g. 1, 10, 100, 1000, 10000, 100000)
