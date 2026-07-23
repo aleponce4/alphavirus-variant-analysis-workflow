@@ -307,7 +307,7 @@ def draw_cliquesnv_plot(df: pd.DataFrame, plots_dir: Path, svg_dir: Path, datase
     plt.savefig(svg_dir / "cliquesnv_haplotype_composition.svg", format='svg', bbox_inches='tight')
     plt.savefig(plots_dir / "cliquesnv_haplotype_composition.png", format='png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("  ✓ Saved CliqueSNV Stacked Bar Plot")
+    print("  [OK] Saved CliqueSNV Stacked Bar Plot")
 
 # =====================================================================
 # 2. VILOCA Track + Linkage Arcs Plot
@@ -436,7 +436,7 @@ def generate_viloca_plots(viloca_dir: Path, plots_dir: Path, svg_dir: Path, gene
         plt.savefig(plots_dir / f"viloca_linkage_{sample}.png", format='png', dpi=300, bbox_inches='tight')
         plt.close()
         
-    print("  ✓ Saved VILOCA Genome Linkage Track Plots")
+    print("  [OK] Saved VILOCA Genome Linkage Track Plots")
 
 # =====================================================================
 # 3. SNPGenie sliding window selection plot
@@ -562,25 +562,50 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
         return f"{metric} — {study_str}"
 
     n_regions = len(regions)
-    fig, axes = plt.subplots(n_regions, 1, figsize=(7, 2.5 * n_regions), squeeze=False, sharex=False, dpi=300)
+    
+    # Pre-calculate global min and max Y across all regions and DPIs for shared Y scale
+    y_min_val = 0.0
+    y_max_val = 0.0
+    plot_curves = {}
+    
+    for region in regions:
+        region_subset = agg_df[agg_df["region"] == region]
+        for dpi_val in unique_dpis:
+            dpi_subset = region_subset[region_subset["dpi"] == dpi_val].sort_values("site").copy()
+            if dpi_subset.empty:
+                continue
+            dpi_subset["smoothed_ratio"] = dpi_subset["mean_ratio"].rolling(window=5, center=True, min_periods=1).mean()
+            dpi_subset["smoothed_se"] = dpi_subset["mean_se"].rolling(window=5, center=True, min_periods=1).mean()
+            
+            plot_curves[(region, dpi_val)] = dpi_subset
+            
+            lower_bound = (dpi_subset["smoothed_ratio"] - dpi_subset["smoothed_se"]).min()
+            upper_bound = (dpi_subset["smoothed_ratio"] + dpi_subset["smoothed_se"]).max()
+            
+            if not pd.isna(lower_bound):
+                y_min_val = min(y_min_val, lower_bound)
+            if not pd.isna(upper_bound):
+                y_max_val = max(y_max_val, upper_bound)
+                
+    # Add 8% padding to y-limits
+    y_range = y_max_val - y_min_val
+    y_padding = y_range * 0.08 if y_range > 0 else 0.01
+    shared_ylim = (y_min_val - y_padding, y_max_val + y_padding)
+
+    fig, axes = plt.subplots(n_regions, 1, figsize=(7, 2.5 * n_regions), squeeze=False, sharex=False, sharey=True, dpi=300)
     
     for idx, region in enumerate(regions):
         ax = axes[idx, 0]
-        region_subset = agg_df[agg_df["region"] == region]
         
         # Add neutrality line
         ax.axhline(0.0, color="gray", linestyle="--", linewidth=0.8, label="Neutrality (piN = piS)")
         
         for d_idx, dpi_val in enumerate(unique_dpis):
-            dpi_subset = region_subset[region_subset["dpi"] == dpi_val].sort_values("site")
-            if dpi_subset.empty:
+            dpi_subset = plot_curves.get((region, dpi_val))
+            if dpi_subset is None or dpi_subset.empty:
                 continue
                 
             color = dpi_colors.get(dpi_val, list(OKABE_ITO.values())[d_idx % len(OKABE_ITO)])
-            
-            # Smooth window lines using a rolling average to reduce noisy spikes
-            dpi_subset["smoothed_ratio"] = dpi_subset["mean_ratio"].rolling(window=5, center=True, min_periods=1).mean()
-            dpi_subset["smoothed_se"] = dpi_subset["mean_se"].rolling(window=5, center=True, min_periods=1).mean()
             
             ax.plot(dpi_subset["site"], dpi_subset["smoothed_ratio"], label=f"DPI {dpi_val}", 
                     color=color, lw=1.2, alpha=0.9)
@@ -592,6 +617,8 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
                 (dpi_subset["smoothed_ratio"] + dpi_subset["smoothed_se"]),
                 color=color, alpha=0.15
             )
+            
+        ax.set_ylim(shared_ylim)
             
         ax.set_title(f"{region} ({format_lab_title(dataset, 'Selection Pressure')})", fontsize=8, fontweight="bold")
         ax.set_ylabel(r"Selection ($\pi_N - \pi_S$)", fontsize=8, fontweight="bold")
@@ -618,7 +645,7 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
     plt.savefig(svg_dir / "snpgenie_selection_sliding_window.svg", format='svg', bbox_inches='tight')
     plt.savefig(plots_dir / "snpgenie_selection_sliding_window.png", format='png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("  ✓ Saved SNPGenie Selection Pressure sliding-window plot")
+    print("  [OK] Saved SNPGenie Selection Pressure sliding-window plot")
 
 # =====================================================================
 # Main execution

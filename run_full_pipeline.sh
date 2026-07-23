@@ -167,6 +167,15 @@ if [ "$RESULTS_DIR" != "$VARIANT_ROOT/results/$DATASET" ]; then
             --manifest "$VARIANT_ROOT/config/samples_manifest.tsv" \
             --gff3 "${REFERENCE%.fasta}.gff3" \
             --dataset "$DATASET"
+
+        python3 "$SCRIPT_DIR/Scripts/Helpers/generate_haplotype_plots.py" \
+            --results-dir "$RESULTS_DIR" \
+            --manifest "$VARIANT_ROOT/config/samples_manifest.tsv" \
+            --gff3 "${REFERENCE%.fasta}.gff3" \
+            --dataset "$DATASET"
+
+        python3 "$SCRIPT_DIR/Scripts/export_excel_variants.py" \
+            --results-dir "$RESULTS_DIR"
     ) 2>&1 | tee -a "$MASTER_LOG"
 
     echo "" | tee -a "$MASTER_LOG"

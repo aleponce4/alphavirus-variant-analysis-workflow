@@ -1,188 +1,135 @@
 #!/bin/bash
+# =====================================================================
+# annotate_all.sh — Annotate variants with bcftools csq
+#
+# Adapted from: aleponce4/alphavirus-variant-analysis-workflow
+# Changes:
+#   - Dataset-aware paths
+#   - Requires viral_only.gff3 with CDS features (see PLAN.md §2.1)
+#
+# Usage:
+#   DATASET=mouse_veev bash annotate_all.sh
+# =====================================================================
+set -uo pipefail
+# Note: no 'set -e' — annotation failures on individual samples should not kill the whole run
 
-# Annotate all VCF files using bcftools csq
-# CRITICAL: Uses --local-csq for iVar files to fix amino acid position errors
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Activate conda environment with bcftools
+export DATASET="${DATASET:-mouse_veev}"
+source "$SCRIPT_DIR/../config.sh"
+
+# Activate conda
 eval "$(conda shell.bash hook)"
 conda activate annotation-env
 
-# Configuration
-REFERENCE="Input/Reference/inh.fasta"
-VIRAL_REFERENCE="/tmp/viral_only.fasta"  # Viral-only reference for annotation
-ANNOTATION="Input/Reference/VEEV_INH_fromGenbank.gff3" # GFF3 annotation file 
-OUTPUT_DIR="Annotated_variants"
-LOFREQ_DIR="$OUTPUT_DIR/LoFreq"
-IVAR_DIR="$OUTPUT_DIR/Ivar"
+mkdir -p "$ANNOTATED_OUT/LoFreq" "$ANNOTATED_OUT/Ivar"
 
-# Create output directories
-mkdir -p "$LOFREQ_DIR"
-mkdir -p "$IVAR_DIR"
+echo "═══════════════════════════════════════════════════════════"
+echo "  Annotating variants for: $DATASET"
+echo "  Reference:  $REFERENCE"
+echo "  Annotation: $ANNOTATION"
+echo "═══════════════════════════════════════════════════════════"
 
-echo "Starting variant annotation pipeline..."
-echo "Reference: $REFERENCE"
-echo "Annotation: $ANNOTATION"
-echo "Output directory: $OUTPUT_DIR"
-
-# Check required files exist
-if [ ! -f "$REFERENCE" ]; then
-    echo "ERROR: Reference file not found: $REFERENCE"
-    exit 1
-fi
-
+# Check GFF3 exists
 if [ ! -f "$ANNOTATION" ]; then
-    echo "ERROR: Annotation file not found: $ANNOTATION"
+    echo "ERROR: Annotation GFF3 not found: $ANNOTATION"
+    echo "  Generate CDS annotations first (see PLAN.md §2.1)"
     exit 1
 fi
 
-# Validate that GFF3 contains CDS features (required by bcftools csq)
-if ! grep -q "\bCDS\b" "$ANNOTATION" 2>/dev/null; then
+# Check for CDS features in GFF3
+if ! grep -q "CDS" "$ANNOTATION"; then
     echo "ERROR: No CDS features found in $ANNOTATION"
-    echo "  bcftools csq requires CDS features for amino acid consequence prediction"
-    echo "  Ensure the GFF3 is in Ensembl format with gene/mRNA/CDS/exon features"
+    echo "  bcftools csq requires CDS features for amino acid prediction"
     exit 1
 fi
 
-echo "Files validated. Starting annotation..."
-
-# Function to annotate LoFreq files (bcftools needs a GFF even with --local-csq)
-annotate_lofreq() {
-  local input_file=$1
-  local output_file=$2
-
-  echo "  Annotating LoFreq: $(basename "$input_file") [local-csq mode]"
-  if bcftools csq \
-      -f "$VIRAL_REFERENCE" \
-      -g "$ANNOTATION" \
-      --local-csq \
-      "$input_file" \
-      -o "$output_file"; then
-    echo "    ✓ Success"
-  else
-    echo "    ✗ Failed (exit code $?)"
-    return 1
-  fi
-}
-
-# Function to annotate iVar files (bcftools needs a GFF even with --local-csq)
-annotate_ivar() {
-  local input_file=$1
-  local output_file=$2
-
-  echo "  Annotating iVar: $(basename "$input_file") [local-csq mode]"
-  if bcftools csq \
-      -f "$VIRAL_REFERENCE" \
-      -g "$ANNOTATION" \
-      --local-csq \
-      "$input_file" \
-      -o "$output_file"; then
-    echo "    ✓ Success"
-  else
-    echo "    ✗ Failed (exit code $?)"
-    return 1
-  fi
-}
-
-
-# Process LoFreq files
+# --- Annotate LoFreq VCFs ---
 echo ""
 echo "Processing LoFreq VCF files..."
 lofreq_count=0
-for sample_dir in LoFreq/*/; do
-    if [ -d "$sample_dir" ]; then
-        sample_name=$(basename "$sample_dir")
-        
-        # Check for filtered VCF first
-        if [ -f "$sample_dir/variants.filtered.vcf.gz" ]; then
-            vcf_file="$sample_dir/variants.filtered.vcf.gz"
-            output_file="$LOFREQ_DIR/${sample_name}_filtered.vcf"
-            
-            # Check if VCF has variants (skip if empty to avoid segfault)
-            variant_count=$(zcat "$vcf_file" | grep -v "^#" | wc -l)
-            if [ $variant_count -gt 0 ]; then
-                echo "  Processing $sample_name ($variant_count variants)"
-                if annotate_lofreq "$vcf_file" "$output_file"; then
-                    ((lofreq_count++))
-                else
-                    echo "    Failed to annotate $sample_name - continuing..."
-                fi
-            else
-                echo "  Skipping $sample_name (no variants - would cause segfault)"
-            fi
-            
-        elif [ -f "$sample_dir/variants.vcf" ]; then
-            vcf_file="$sample_dir/variants.vcf"
-            output_file="$LOFREQ_DIR/${sample_name}.vcf"
-            
-            # Check if VCF has variants (skip if empty to avoid segfault)
-            variant_count=$(grep -v "^#" "$vcf_file" | wc -l)
-            if [ $variant_count -gt 0 ]; then
-                echo "  Processing $sample_name ($variant_count variants)"
-                if annotate_lofreq "$vcf_file" "$output_file"; then
-                    ((lofreq_count++))
-                else
-                    echo "    Failed to annotate $sample_name - continuing..."
-                fi
-            else
-                echo "  Skipping $sample_name (no variants - would cause segfault)"
-            fi
+
+for sample_dir in "$LOFREQ_OUT"/*/; do
+    if [ ! -d "$sample_dir" ]; then
+        continue
+    fi
+
+    sample_name=$(basename "$sample_dir")
+
+    if [ -f "$sample_dir/variants.filtered.vcf.gz" ]; then
+        vcf_file="$sample_dir/variants.filtered.vcf.gz"
+        output_file="$ANNOTATED_OUT/LoFreq/${sample_name}_filtered.vcf"
+
+        FORCE_RECALL="${FORCE_RECALL:-false}"
+        if [ "$FORCE_RECALL" = "false" ] && [ -f "$output_file" ]; then
+            echo "  ✓ LoFreq: $sample_name already annotated, skipping"
+            lofreq_count=$((lofreq_count + 1))
+            continue
+        fi
+
+        echo "  Annotating LoFreq: $sample_name"
+        if bcftools csq -f "$REFERENCE" -g "$ANNOTATION" --local-csq \
+            "$vcf_file" -o "$output_file"; then
+            echo "    ✓ Success"
+            lofreq_count=$((lofreq_count + 1))
+        else
+            echo "    ✗ Failed (exit code $?)"
         fi
     fi
 done
 
-if [ $lofreq_count -eq 0 ]; then
-    echo "  No LoFreq VCF files found in LoFreq/*/"
-else
-    echo "  Processed $lofreq_count LoFreq files"
-fi
-
-# Process iVar files (convert TSV to VCF first)
+# --- Annotate iVar VCFs ---
 echo ""
-echo "Processing iVar TSV files..."
+echo "Processing iVar variant files..."
 ivar_count=0
-for sample_dir in Ivar/*/; do
-    if [ -d "$sample_dir" ]; then
-        sample_name=$(basename "$sample_dir")
-        
-        if [ -f "$sample_dir/variants.tsv" ]; then
-            # Check if TSV has variants first (skip if empty to avoid segfault)
-            variant_count=$(tail -n +2 "$sample_dir/variants.tsv" | wc -l)
-            
-            if [ $variant_count -gt 0 ]; then
-                # Convert TSV to VCF using Python script
-                tsv_file="$sample_dir/variants.tsv"
-                temp_vcf="$sample_dir/variants.vcf"
-                
-                echo "  Converting TSV to VCF: $sample_name ($variant_count variants)"
-                python Scripts/ivar_variants_to_vcf.py "$tsv_file" "$temp_vcf" "$REFERENCE"
-                
-                if [ -f "$temp_vcf" ]; then
-                    output_file="$IVAR_DIR/${sample_name}.vcf"
-                    echo "  Annotating iVar: $sample_name"
-                    if annotate_ivar "$temp_vcf" "$output_file"; then
-                        ((ivar_count++))
-                    else
-                        echo "    Failed to annotate $sample_name - continuing..."
-                    fi
-                    
-                    # Clean up temporary VCF
-                    rm -f "$temp_vcf"
-                fi
-            else
-                echo "  Skipping $sample_name (no variants - would cause segfault)"
+
+for sample_dir in "$IVAR_OUT"/*/; do
+    if [ ! -d "$sample_dir" ]; then
+        continue
+    fi
+
+    sample_name=$(basename "$sample_dir")
+
+    if [ -f "$sample_dir/variants.tsv" ]; then
+        variant_count=$(tail -n +2 "$sample_dir/variants.tsv" | wc -l)
+
+        if [ "$variant_count" -gt 0 ]; then
+            tsv_file="$sample_dir/variants.tsv"
+            temp_vcf="$sample_dir/variants.vcf"
+            output_file="$ANNOTATED_OUT/Ivar/${sample_name}.vcf"
+
+            FORCE_RECALL="${FORCE_RECALL:-false}"
+            if [ "$FORCE_RECALL" = "false" ] && [ -f "$output_file" ]; then
+                echo "  ✓ iVar: $sample_name already annotated, skipping"
+                ivar_count=$((ivar_count + 1))
+                continue
             fi
+
+            echo "  Converting TSV→VCF: $sample_name ($variant_count variants)"
+            python "$SCRIPT_DIR/ivar_variants_to_vcf.py" \
+                "$tsv_file" "$temp_vcf" "$REFERENCE"
+
+            if [ -f "$temp_vcf" ]; then
+                echo "  Annotating iVar: $sample_name"
+                if bcftools csq -f "$REFERENCE" -g "$ANNOTATION" --local-csq \
+                    "$temp_vcf" -o "$output_file"; then
+                    ivar_count=$((ivar_count + 1))
+                else
+                    echo "    Failed to annotate $sample_name"
+                fi
+                rm -f "$temp_vcf"
+            fi
+        else
+            echo "  Skipping $sample_name (no variants)"
         fi
     fi
 done
 
-if [ $ivar_count -eq 0 ]; then
-    echo "  No iVar TSV files found in Ivar/*/"
-else
-    echo "  Processed $ivar_count iVar files"
-fi
-
 echo ""
-echo "Annotation completed. Results in $OUTPUT_DIR/"
-echo "LoFreq annotated files: $lofreq_count"
-echo "iVar annotated files: $ivar_count"
-echo "Total files processed: $((lofreq_count + ivar_count))"
+echo "═══════════════════════════════════════════════════════════"
+echo "  Annotation complete for: $DATASET"
+echo "  LoFreq annotated: $lofreq_count"
+echo "  iVar annotated:   $ivar_count"
+echo "  Output: $ANNOTATED_OUT"
+echo "═══════════════════════════════════════════════════════════"
