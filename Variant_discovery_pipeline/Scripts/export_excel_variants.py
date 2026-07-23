@@ -336,6 +336,89 @@ def create_summary_sheet(wb: openpyxl.Workbook, df: pd.DataFrame, dataset_name: 
         
     style_worksheet(ws, is_summary=True)
 
+def build_e2_k3e_audit_sheet(wb: openpyxl.Workbook, base_dir: Path, dataset_name: str):
+    """Builds a dedicated audit worksheet for E2-K3E (Site 8570) read coverage and allele percentages."""
+    manifest_path = base_dir.parent / "config" / "samples_manifest.tsv"
+    if not manifest_path.exists():
+        manifest_path = Path("variant_analysis/config/samples_manifest.tsv")
+        
+    if not manifest_path.exists():
+        return
+        
+    manifest = pd.read_csv(manifest_path, sep='\t')
+    ds_manifest = manifest[manifest['dataset'] == dataset_name]
+    if ds_manifest.empty:
+        return
+
+    rows = []
+    for idx, row in ds_manifest.iterrows():
+        s = str(row['sample_id'])
+        s_full = f's{s}' if not s.startswith('s') else s
+        dpi = row['dpi']
+        treatment = row['treatment']
+        
+        cov_path = base_dir / dataset_name / 'Coverage' / f'{s_full}_coverage.txt'
+        depth_8570 = 0
+        if cov_path.exists():
+            cov_df = pd.read_csv(cov_path, sep='\t', header=None, names=['chrom', 'pos', 'depth'])
+            match = cov_df[cov_df['pos'] == 8570]
+            if not match.empty:
+                depth_8570 = int(match['depth'].values[0])
+                
+        site_path = base_dir / dataset_name / 'SNPGenie' / 'output' / 'minfreq_0p01' / s_full / 'site_results.txt'
+        a_cnt, c_cnt, g_cnt, t_cnt = 0, 0, 0, 0
+        if site_path.exists():
+            site_df = pd.read_csv(site_path, sep='\t')
+            m = site_df[site_df['site'] == 8570]
+            if not m.empty:
+                a_cnt = int(m['A'].values[0])
+                c_cnt = int(m['C'].values[0])
+                g_cnt = int(m['G'].values[0])
+                t_cnt = int(m['T'].values[0])
+                depth_8570 = int(m['coverage'].values[0])
+            else:
+                a_cnt = depth_8570
+        else:
+            a_cnt = depth_8570
+            
+        ref_pct = (a_cnt / depth_8570) if depth_8570 > 0 else 0.0
+        var_pct = (g_cnt / depth_8570) if depth_8570 > 0 else 0.0
+        other_cnt = c_cnt + t_cnt
+        other_pct = (other_cnt / depth_8570) if depth_8570 > 0 else 0.0
+        
+        qc_status = 'PASS (>= 1,000x)' if depth_8570 >= 1000 else 'Low Coverage (< 1,000x)'
+        
+        rows.append({
+            'Sample ID': s_full,
+            'DPI': dpi,
+            'Treatment': treatment,
+            'Site 8570 Read Depth': depth_8570,
+            'Ref Allele (A - Lysine) Count': a_cnt,
+            'Ref Allele (A) %': ref_pct,
+            'Variant Allele (G - E2-K3E) Count': g_cnt,
+            'Variant Allele (G - E2-K3E) %': var_pct,
+            'Other Allele Count': other_cnt,
+            'Other Allele %': other_pct,
+            'QC / Filter Status': qc_status
+        })
+
+    audit_df = pd.DataFrame(rows)
+    if audit_df.empty:
+        return
+
+    ws = wb.create_sheet(title="E2-K3E Audit (Site 8570)")
+    for r in dataframe_to_rows(audit_df, index=False, header=True):
+        ws.append(r)
+        
+    style_worksheet(ws)
+    
+    # Custom cell number formatting for percentages and integer depth
+    for r_idx in range(2, ws.max_row + 1):
+        for col_idx in [4, 5, 7, 9]:
+            ws.cell(row=r_idx, column=col_idx).number_format = '#,##0'
+        for col_idx in [6, 8, 10]:
+            ws.cell(row=r_idx, column=col_idx).number_format = '0.00%'
+
 def export_dataset_to_excel(tsv_path: Path, output_excel_path: Path, dataset_name: str):
     """Builds a complete, formatted Excel workbook with multiple tabs for a given dataset."""
     print(f"Processing dataset '{dataset_name}' from: {tsv_path}")
@@ -385,6 +468,10 @@ def export_dataset_to_excel(tsv_path: Path, output_excel_path: Path, dataset_nam
         for r in dataframe_to_rows(df_minor, index=False, header=True):
             ws_minor.append(r)
         style_worksheet(ws_minor)
+
+    # 7. Dedicated E2-K3E Audit Tab for VEEV
+    if "veev" in dataset_name.lower():
+        build_e2_k3e_audit_sheet(wb, tsv_path.parent.parent.parent, dataset_name)
 
     # Output directory
     output_excel_path.parent.mkdir(parents=True, exist_ok=True)
