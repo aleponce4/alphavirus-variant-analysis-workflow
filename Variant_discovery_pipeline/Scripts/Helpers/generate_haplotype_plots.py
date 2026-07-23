@@ -478,7 +478,7 @@ def run_sliding_window(df: pd.DataFrame, window_size=40, step=1) -> pd.DataFrame
         
     return pd.DataFrame(results)
 
-def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, manifest_samples: dict, dataset: str):
+def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, manifest_samples: dict, dataset: str, gene_coords: dict = None):
     # Group samples by DPI and treatment for plotting
     samples_found = []
     for sample, meta in manifest_samples.items():
@@ -551,15 +551,13 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
         4: OKABE_ITO["vermilion"]
     }
     
-    def format_lab_title(ds_name: str, metric: str) -> str:
-        ds = ds_name.lower()
-        if "veev" in ds:
-            study_str = "VEEV Studies 045 & 047"
-        elif "eeev" in ds:
-            study_str = "EEEV Studies 046 & 048"
-        else:
-            study_str = ds.upper()
-        return f"{metric} — {study_str}"
+    ds = dataset.lower()
+    if "veev" in ds:
+        study_str = "VEEV Studies 045 & 047"
+    elif "eeev" in ds:
+        study_str = "EEEV Studies 046 & 048"
+    else:
+        study_str = dataset.upper()
 
     n_regions = len(regions)
     
@@ -587,10 +585,10 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
             if not pd.isna(upper_bound):
                 y_max_val = max(y_max_val, upper_bound)
                 
-    # Add 8% padding to y-limits
+    # Add padding to y-limits to accommodate top gene labels
     y_range = y_max_val - y_min_val
-    y_padding = y_range * 0.08 if y_range > 0 else 0.01
-    shared_ylim = (y_min_val - y_padding, y_max_val + y_padding)
+    y_padding = y_range * 0.12 if y_range > 0 else 0.001
+    shared_ylim = (y_min_val - y_padding * 0.5, y_max_val + y_padding * 2.2)
 
     fig, axes = plt.subplots(n_regions, 1, figsize=(7, 2.5 * n_regions), squeeze=False, sharex=False, sharey=True, dpi=300)
     
@@ -619,26 +617,45 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
             )
             
         ax.set_ylim(shared_ylim)
+        
+        # Overlay gene sections/labels if gene coordinates provided
+        if gene_coords:
+            stagger_genes = {'E3', '6K', 'TF'}
+            y_base = y_max_val + y_padding * 0.5
+            y_stagger = y_max_val + y_padding * 1.4
             
-        ax.set_title(f"{region} ({format_lab_title(dataset, 'Selection Pressure')})", fontsize=8, fontweight="bold")
+            for gene, info in gene_coords.items():
+                is_nsp = gene.startswith("nsP")
+                if (idx == 0 and is_nsp) or (idx == 1 and not is_nsp):
+                    ax.axvline(info['start'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
+                    ax.axvline(info['end'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
+                    
+                    mid = (info['start'] + info['end']) / 2
+                    y_pos = y_stagger if gene in stagger_genes else y_base
+                    
+                    ax.text(mid, y_pos, gene, ha='center', va='center', fontsize=7, fontweight='bold', zorder=5,
+                            bbox=dict(boxstyle='round,pad=0.12', facecolor='white', alpha=0.9, edgecolor='#94A3B8', linewidth=0.5))
+            
+        short_title = "Non-structural (nsP1-4)" if "Non-structural" in region else "Structural (Subgenomic)"
+        ax.set_title(short_title, fontsize=8.5, fontweight="bold")
         ax.set_ylabel(r"Selection ($\pi_N - \pi_S$)", fontsize=8, fontweight="bold")
         ax.set_xlabel("Genome Position (nt)", fontsize=8, fontweight="bold")
         apply_plot_theme(ax)
+        
         if idx == 0:
-            ax.legend(bbox_to_anchor=(1.02, 1.0), loc="upper left", frameon=True, edgecolor='black', fancybox=False, fontsize=7)
+            ax.legend(bbox_to_anchor=(1.02, 1.0), loc="upper left", frameon=True, edgecolor='black', fancybox=False, facecolor='white', fontsize=7)
             
-            # Add explanatory box below legend explaining positive, neutral, and purifying selection
+            study_bold = study_str.replace(" ", "\\ ")
             explanation = (
-                r"$\mathbf{Selection\ Metric\ (\pi_N - \pi_S):}$" "\n"
-                r"• $\mathbf{> 0}$: Positive Selection" "\n"
-                r"   (adaptive / diversifying)" "\n"
-                r"• $\mathbf{= 0}$: Neutral Evolution" "\n"
-                r"• $\mathbf{< 0}$: Purifying Selection" "\n"
-                r"   (functional constraint)"
+                f"$\\mathbf{{{study_bold}}}$\n\n"
+                r"$\mathbf{Selection\ (\pi_N - \pi_S):}$" "\n"
+                "• > 0: Positive\n"
+                "• = 0: Neutral\n"
+                "• < 0: Purifying"
             )
             ax.text(
-                1.02, 0.42, explanation, transform=ax.transAxes, fontsize=6.5,
-                verticalalignment='top', bbox=dict(boxstyle='round,pad=0.4', facecolor='#F8F9FA', edgecolor='black', lw=0.6)
+                1.02, 0.45, explanation, transform=ax.transAxes, fontsize=7,
+                verticalalignment='top', bbox=dict(boxstyle='square,pad=0.5', facecolor='white', edgecolor='black', linewidth=0.8)
             )
             
     plt.tight_layout()
@@ -680,7 +697,7 @@ def main():
     # 3. SNPGenie Selection
     snpgenie_dir = results_dir / "SNPGenie"
     if snpgenie_dir.exists():
-        generate_snpgenie_plots(snpgenie_dir, plots_dir, svg_dir, manifest_samples, dataset)
+        generate_snpgenie_plots(snpgenie_dir, plots_dir, svg_dir, manifest_samples, dataset, gene_coords=gene_coords)
 
 if __name__ == "__main__":
     main()
