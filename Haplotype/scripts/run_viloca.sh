@@ -18,8 +18,9 @@ WINDOW_SIZE=141             # ~read length; must be divisible by 3 (win_shifts)
 MODE="use_quality_scores"   # recommended: uses Phred scores from BAM
 WIN_MIN_EXT=0.85            # min fraction of window a read must cover
 NON_VAR_POS_THRESHOLD=0.005  # low-frequency noise cutoff (0.5%)
-THREADS=24                  # parallelism
+THREADS=4                   # parallelism
 MIN_PRIMARY_READS=10000     # skip samples with too few usable reads
+MAX_PRIMARY_READS=500000    # post-dedup safety cap (~5000x depth) to prevent VILOCA OOM
 MIN_WINDOWS_COVERAGE=10     # omit windows with low depth for stability
 # ────────────────────────────────────────────────────────────
 
