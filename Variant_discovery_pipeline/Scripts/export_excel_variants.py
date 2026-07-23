@@ -241,15 +241,15 @@ def style_worksheet(ws: openpyxl.worksheet.worksheet.Worksheet, is_summary: bool
         ws.column_dimensions[col_letter].width = min(adjusted_width, 40)
 
 def create_summary_sheet(wb: openpyxl.Workbook, df: pd.DataFrame, dataset_name: str):
-    """Creates a high-level executive summary tab."""
-    ws = wb.create_sheet(title="Executive Summary", index=0)
+    """Creates a high-level study overview and quality statistics tab."""
+    ws = wb.create_sheet(title="Study Overview & QC", index=0)
     
     title_font = Font(name="Segoe UI", size=16, bold=True, color="1B365D")
     section_font = Font(name="Segoe UI", size=12, bold=True, color="1B365D")
     bold_label_font = Font(name="Segoe UI", size=10, bold=True)
     regular_font = Font(name="Segoe UI", size=10)
     
-    ws['A1'] = f"Variant Calling Analysis Summary ({dataset_name})"
+    ws['A1'] = f"Variant Calling Analysis Overview ({dataset_name})"
     ws['A1'].font = title_font
     
     total_vars = len(df)
@@ -406,7 +406,8 @@ def build_e2_k3e_audit_sheet(wb: openpyxl.Workbook, base_dir: Path, dataset_name
     if audit_df.empty:
         return
 
-    ws = wb.create_sheet(title="E2-K3E Audit (Site 8570)")
+    sheet_title = "VEEV E2-K3E Audit" if "master" in str(wb).lower() or len(wb.sheetnames) > 4 else "E2-K3E Audit (Site 8570)"
+    ws = wb.create_sheet(title=sheet_title)
     for r in dataframe_to_rows(audit_df, index=False, header=True):
         ws.append(r)
         
@@ -419,6 +420,18 @@ def build_e2_k3e_audit_sheet(wb: openpyxl.Workbook, base_dir: Path, dataset_name
         for col_idx in [6, 8, 10]:
             ws.cell(row=r_idx, column=col_idx).number_format = '0.00%'
 
+def save_workbook_safely(wb: openpyxl.Workbook, output_path: Path):
+    """Saves workbook and handles PermissionError gracefully if open in Excel."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        wb.save(output_path)
+        print(f"  [OK] Saved formatted Excel workbook to: {output_path}")
+    except PermissionError:
+        alt_path = output_path.parent / f"{output_path.stem}_updated{output_path.suffix}"
+        wb.save(alt_path)
+        print(f"  [WARNING] File '{output_path.name}' is currently open in Excel.")
+        print(f"  [OK] Saved updated copy to: {alt_path}")
+
 def export_dataset_to_excel(tsv_path: Path, output_excel_path: Path, dataset_name: str):
     """Builds a complete, formatted Excel workbook with multiple tabs for a given dataset."""
     print(f"Processing dataset '{dataset_name}' from: {tsv_path}")
@@ -428,7 +441,7 @@ def export_dataset_to_excel(tsv_path: Path, output_excel_path: Path, dataset_nam
     default_sheet = wb.active
     wb.remove(default_sheet)
     
-    # 1. Executive Summary Tab
+    # 1. Study Overview & QC Stats Tab
     create_summary_sheet(wb, df, dataset_name)
     
     # 2. All Variants Tab
@@ -473,10 +486,7 @@ def export_dataset_to_excel(tsv_path: Path, output_excel_path: Path, dataset_nam
     if "veev" in dataset_name.lower():
         build_e2_k3e_audit_sheet(wb, tsv_path.parent.parent.parent, dataset_name)
 
-    # Output directory
-    output_excel_path.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(output_excel_path)
-    print(f"  [OK] Saved formatted Excel workbook to: {output_excel_path}")
+    save_workbook_safely(wb, output_excel_path)
 
 def main():
     parser = argparse.ArgumentParser(description="Export variant TSVs to beautifully formatted Excel workbooks.")
@@ -521,13 +531,39 @@ def main():
         # Master Nonsynonymous Tab
         df_nonsyn_all = combined_df[combined_df['Mutation Type'].isin(['nonsynonymous', 'missense'])]
         if not df_nonsyn_all.empty:
-            ws_n_master = wb.create_sheet(title="Master Nonsynonymous Mutations")
+            ws_n_master = wb.create_sheet(title="Master Nonsynonymous")
             for r in dataframe_to_rows(df_nonsyn_all, index=False, header=True):
                 ws_n_master.append(r)
             style_worksheet(ws_n_master)
             
-        wb.save(master_excel_out)
-        print(f"\n  [OK] Saved Master Combined Excel workbook to: {master_excel_out}")
+        # Master Synonymous Tab
+        df_syn_all = combined_df[combined_df['Mutation Type'] == 'synonymous']
+        if not df_syn_all.empty:
+            ws_s_master = wb.create_sheet(title="Master Synonymous")
+            for r in dataframe_to_rows(df_syn_all, index=False, header=True):
+                ws_s_master.append(r)
+            style_worksheet(ws_s_master)
+            
+        # Master Major Variants (VAF >= 5%)
+        df_major_all = combined_df[combined_df['Variant Allele Frequency (%)'] >= 0.05]
+        if not df_major_all.empty:
+            ws_maj_master = wb.create_sheet(title="Master Major (VAF >= 5%)")
+            for r in dataframe_to_rows(df_major_all, index=False, header=True):
+                ws_maj_master.append(r)
+            style_worksheet(ws_maj_master)
+
+        # Master Minor Variants (VAF < 5%)
+        df_minor_all = combined_df[combined_df['Variant Allele Frequency (%)'] < 0.05]
+        if not df_minor_all.empty:
+            ws_min_master = wb.create_sheet(title="Master Minor (VAF < 5%)")
+            for r in dataframe_to_rows(df_minor_all, index=False, header=True):
+                ws_min_master.append(r)
+            style_worksheet(ws_min_master)
+
+        # VEEV E2-K3E Audit Tab in Master
+        build_e2_k3e_audit_sheet(wb, base_dir, "mouse_veev")
+            
+        save_workbook_safely(wb, master_excel_out)
 
 if __name__ == "__main__":
     main()
