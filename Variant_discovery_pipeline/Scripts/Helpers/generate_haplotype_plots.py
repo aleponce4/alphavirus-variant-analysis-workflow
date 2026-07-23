@@ -587,8 +587,8 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
                 
     # Add padding to y-limits to accommodate top gene labels
     y_range = y_max_val - y_min_val
-    y_padding = y_range * 0.12 if y_range > 0 else 0.001
-    shared_ylim = (y_min_val - y_padding * 0.5, y_max_val + y_padding * 2.2)
+    y_padding = y_range * 0.10 if y_range > 0 else 0.001
+    shared_ylim = (y_min_val - y_padding * 0.5, y_max_val + y_padding * 1.35)
 
     fig, axes = plt.subplots(n_regions, 1, figsize=(7, 2.5 * n_regions), squeeze=False, sharex=False, sharey=True, dpi=300)
     
@@ -618,11 +618,9 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
             
         ax.set_ylim(shared_ylim)
         
-        # Overlay gene sections/labels if gene coordinates provided
+        # Overlay gene sections/labels on single line if gene coordinates provided
         if gene_coords:
-            stagger_genes = {'E3', '6K', 'TF'}
-            y_base = y_max_val + y_padding * 0.5
-            y_stagger = y_max_val + y_padding * 1.4
+            y_pos = y_max_val + y_padding * 0.55
             
             for gene, info in gene_coords.items():
                 is_nsp = gene.startswith("nsP")
@@ -631,7 +629,6 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
                     ax.axvline(info['end'], color='gray', linewidth=0.5, linestyle=':', alpha=0.5, zorder=1)
                     
                     mid = (info['start'] + info['end']) / 2
-                    y_pos = y_stagger if gene in stagger_genes else y_base
                     
                     ax.text(mid, y_pos, gene, ha='center', va='center', fontsize=7, fontweight='bold', zorder=5,
                             bbox=dict(boxstyle='round,pad=0.12', facecolor='white', alpha=0.9, edgecolor='#94A3B8', linewidth=0.5))
@@ -643,7 +640,7 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
         apply_plot_theme(ax)
         
         if idx == 0:
-            ax.legend(bbox_to_anchor=(1.02, 1.0), loc="upper left", frameon=True, edgecolor='black', fancybox=False, facecolor='white', fontsize=7)
+            ax.legend(bbox_to_anchor=(1.04, 1.0), loc="upper left", frameon=True, edgecolor='black', fancybox=False, facecolor='white', fontsize=7)
             
             study_bold = study_str.replace(" ", "\\ ")
             explanation = (
@@ -654,8 +651,9 @@ def generate_snpgenie_plots(snpgenie_dir: Path, plots_dir: Path, svg_dir: Path, 
                 "• < 0: Purifying"
             )
             ax.text(
-                1.02, 0.45, explanation, transform=ax.transAxes, fontsize=7,
-                verticalalignment='top', bbox=dict(boxstyle='square,pad=0.5', facecolor='white', edgecolor='black', linewidth=0.8)
+                1.04, 0.40, explanation, transform=ax.transAxes, fontsize=7,
+                verticalalignment='top', horizontalalignment='left',
+                bbox=dict(boxstyle='square,pad=0.5', facecolor='white', edgecolor='black', linewidth=0.8)
             )
             
     plt.tight_layout()
