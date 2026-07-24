@@ -9,6 +9,7 @@ Generates publication-quality horizontal stacked barplots (samples as rows) for 
 
 Features:
 - Samples as rows (horizontal bars, ax.barh) with bars close together (height=0.92, minimal gap).
+- Vertically ALIGNED host percentage numbers inside blue bars (fixed left-aligned position x=12M).
 - Shared Read Count X-axis scale (0 to 150 Million Reads) across ALL figures for direct comparability.
 - Left-side group brackets (outside plot margin) for DPI and Treatment categories so no horizontal space is stolen.
 - 100% Black Arial typography for all titles, labels, and ticks (publication grade).
@@ -211,16 +212,18 @@ def plot_horizontal_dual_panel(df_panel_a, df_panel_b, title_a, title_b, main_ti
         bars_host = ax.barh(y_positions, host_reads, color=COLOR_HOST, edgecolor='none', height=0.92, label='Mouse (Host) Reads', zorder=3)
         bars_viral = ax.barh(y_positions, viral_reads, left=host_reads, color=COLOR_VIRUS, edgecolor='none', height=0.92, label='Viral Reads', zorder=3)
         
-        # Percentage Annotations inside & right of horizontal bars (ALL BLACK or WHITE TEXT)
+        # Percentage Annotations inside & right of horizontal bars (PERFECTLY ALIGNED Host % at x = 12M)
+        ALIGNED_HOST_X = 12e6  # Fixed X coordinate for 100% vertical alignment inside blue bars
+        
         for i in range(len(df_sorted)):
             h = host_reads[i]
             v = viral_reads[i]
             v_pct = viral_pcts[i]
             h_pct = host_pcts[i]
             
-            # Host % inside blue bar
-            if h_pct > 65:
-                ax.text(h * 0.5, y_positions[i], f"{h_pct:.1f}%", ha='center', va='center', color='white', fontsize=7.5, fontweight='bold')
+            # Host % PERFECTLY VERTICALLY ALIGNED inside blue bar at x=12M
+            if h_pct > 50:
+                ax.text(ALIGNED_HOST_X, y_positions[i], f"{h_pct:.1f}%", ha='left', va='center', color='white', fontsize=7.8, fontweight='bold')
                 
             # Viral % inside or right of red bar
             if v_pct >= 0.5:
