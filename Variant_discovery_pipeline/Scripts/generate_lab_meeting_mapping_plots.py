@@ -9,9 +9,10 @@ Generates publication-quality horizontal stacked barplots (samples as rows) for 
 
 Features:
 - Samples as rows (horizontal bars, ax.barh) with bars close together (height=0.92, minimal gap).
+- Horizontal "Sample ID" header placed cleanly at the top of the sample column (above top sample tick).
 - Vertically ALIGNED host percentage numbers inside blue bars (fixed left-aligned position x=12M).
 - Shared Read Count X-axis scale (0 to 150 Million Reads) across ALL figures for direct comparability.
-- Left-side group brackets (outside plot margin) for DPI and Treatment categories so no horizontal space is stolen.
+- Left-side group brackets (outside plot margin) for DPI and Treatment categories.
 - 100% Black Arial typography for all titles, labels, and ticks (publication grade).
 - Standard host (Okabe Blue #0072B2) vs. viral (Vermilion #D55E00) palette.
 - Completely clean plot area with NO gridlines inside.
@@ -240,7 +241,13 @@ def plot_horizontal_dual_panel(df_panel_a, df_panel_b, title_a, title_b, main_ti
         ax.set_title(f"Panel {panel_letter}: {title_text}", fontsize=12, fontweight='bold', pad=24, color='black')
         ax.set_yticks(y_positions)
         ax.set_yticklabels([f"s{s}" for s in df_sorted['sample_id']], fontsize=8.5, fontweight='bold', color='black')
-        ax.set_ylabel("Sample ID", fontsize=10, fontweight='bold', color='black')
+        
+        # Move "Sample ID" label to TOP, HORIZONTAL, directly above the top sample ID tick (s101 / s301)
+        ax.set_ylabel("")  # Clear standard vertical Y label
+        trans = ax.get_yaxis_transform()
+        top_y_pos = len(df_sorted) - 0.15
+        ax.text(-0.02, top_y_pos, "Sample ID", ha='right', va='bottom', fontsize=9.0, fontweight='bold', color='black', transform=trans, clip_on=False)
+        
         ax.set_xlabel("Mapped Read Count (Millions)", fontsize=10, fontweight='bold', labelpad=8, color='black')
         
         # REMOVE ALL GRIDLINES INSIDE PLOT AREA
