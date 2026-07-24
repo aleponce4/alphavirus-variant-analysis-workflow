@@ -2,16 +2,17 @@
 """
 generate_lab_meeting_mapping_plots.py
 
-Generates publication-quality vertical dual stacked barplots for lab meeting presentation:
-1. VEEV: Intranasal (IN) [Top Panel A] vs. Subcutaneous (SC) [Bottom Panel B]
-2. EEEV: Intranasal (IN) [Top Panel A] vs. Subcutaneous (SC) [Bottom Panel B] (Excluding BDGR)
-3. EEEV: BDGR 251 Antiviral Study (Untreated EEEV [Top Panel A] vs. BDGR 251 + EEEV [Bottom Panel B])
+Generates publication-quality horizontal stacked barplots (samples as rows) for lab meeting presentation:
+1. VEEV: Intranasal (IN) [Panel A] vs. Subcutaneous (SC) [Panel B]
+2. EEEV: Intranasal (IN) [Panel A] vs. Subcutaneous (SC) [Panel B] (Excluding BDGR)
+3. EEEV: BDGR 251 Antiviral Study (Untreated EEEV [Panel A] vs. BDGR 251 + EEEV [Panel B])
 
 Features:
-- Vertical panel layout matching workflow plot aesthetic (Okabe-Ito / Navy-Crimson palette, black spines).
-- Stacked bars showing Host (Mouse) vs. Virus (VEEV/EEEV) mapped reads.
-- Percentage read breakdown labels inside stacked bar segments.
-- Clean two-tiered annotation brackets for Mock / Challenge / Treatment and DPI 1-4 with non-overlapping spacing.
+- Samples as rows (horizontal bars, ax.barh) with bars close together (height=0.92, minimal gap).
+- Bold Arial typography for titles, section headers, and percentage labels.
+- Standard host (Okabe Blue #0072B2) vs. viral (Vermilion #D55E00) palette.
+- Completely clean plot area with NO gridlines inside.
+- Clear Y-axis group shading and right-hand annotations for Mock, DPI 1-4, Challenge, and Treatment.
 - Saves high-res PNG (300 DPI) and vector SVG formats.
 """
 
@@ -34,8 +35,8 @@ SVG_DIR = LAB_PLOTS_DIR / "SVG"
 LAB_PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 SVG_DIR.mkdir(parents=True, exist_ok=True)
 
-# Matplotlib global style configuration matching pipeline plots
-plt.rcParams['font.sans-serif'] = 'Arial'
+# Matplotlib global style configuration
+plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.size'] = 8.5
 plt.rcParams['figure.facecolor'] = 'white'
@@ -44,11 +45,11 @@ plt.rcParams['axes.edgecolor'] = 'black'
 plt.rcParams['axes.linewidth'] = 0.8
 plt.rcParams['savefig.dpi'] = 300
 
-# Color Palette matching workflow theme
-COLOR_HOST = '#0072B2'   # Okabe-Ito Blue / Navy (#1B365D)
-COLOR_VIRUS = '#D55E00'  # Okabe-Ito Vermilion / Crimson (#D9381E)
-COLOR_MOCK_BG = '#F0F4F8' # Soft Blue-Gray Shading
-COLOR_ALT_BG = '#F8F9FA'  # Very Light Gray Shading
+# Color Palette matching standard host vs virus theme
+COLOR_HOST = '#0072B2'    # Standard Okabe-Ito Navy/Blue
+COLOR_VIRUS = '#D55E00'   # Standard Okabe-Ito Vermilion/Red
+COLOR_MOCK_BG = '#F0F4F8'  # Soft Blue-Gray Shading for Mock
+COLOR_ALT_BG = '#F8F9FA'   # Light Gray Shading for Alternating Groups
 
 def parse_idxstats(idx_file_path, viral_chr):
     """Parses samtools idxstats MultiQC file to extract host and viral mapped reads per sample."""
@@ -104,8 +105,8 @@ def load_all_mapping_data():
     merged = pd.merge(manifest, mapping_all, on='bam_name', how='inner')
     return merged
 
-def add_clean_group_brackets(ax, df_sorted, y_max):
-    """Adds background shading and non-overlapping two-tiered brackets for groups."""
+def add_y_group_annotations(ax, df_sorted, x_max):
+    """Adds background shading bands and group labels along the Y-axis rows."""
     groups = []
     df_sorted['dpi_clean'] = "DPI " + df_sorted['dpi'].astype(str)
     df_sorted['group_key'] = df_sorted['treatment'].astype(str) + "___" + df_sorted['dpi_clean']
@@ -118,90 +119,60 @@ def add_clean_group_brackets(ax, df_sorted, y_max):
         if k != current_key:
             if current_key is not None:
                 trt, dpi_str = current_key.split('___')
-                groups.append({'treatment': trt, 'dpi': dpi_str, 'start_x': start_idx, 'end_x': i - 1})
+                groups.append({'treatment': trt, 'dpi': dpi_str, 'start_y': start_idx, 'end_y': i - 1})
             current_key = k
             start_idx = i
     if current_key is not None:
         trt, dpi_str = current_key.split('___')
-        groups.append({'treatment': trt, 'dpi': dpi_str, 'start_x': start_idx, 'end_x': len(df_sorted) - 1})
+        groups.append({'treatment': trt, 'dpi': dpi_str, 'start_y': start_idx, 'end_y': len(df_sorted) - 1})
 
-    # 1. Background shading per DPI group
+    # 1. Background shading per group along Y rows
     for idx, g in enumerate(groups):
-        start_x = g['start_x'] - 0.42
-        end_x = g['end_x'] + 0.42
+        start_y = g['start_y'] - 0.48
+        end_y = g['end_y'] + 0.48
         bg_color = COLOR_MOCK_BG if 'Mock' in g['treatment'] else (COLOR_ALT_BG if idx % 2 == 0 else '#FFFFFF')
-        ax.axvspan(start_x, end_x, color=bg_color, alpha=0.65, zorder=0)
+        ax.axhspan(start_y, end_y, color=bg_color, alpha=0.65, zorder=0)
 
-    # 2. Top DPI Brackets (Lower Tier)
-    bracket_y1 = y_max * 1.008
-    bracket_h1 = y_max * 0.012
-    
+    # 2. Add DPI Brackets & Annotations on the right margin
     for g in groups:
-        mid_x = (g['start_x'] + g['end_x']) / 2.0
-        ax.plot([g['start_x'], g['end_x']], [bracket_y1, bracket_y1], color='#333333', lw=1.0, zorder=5)
-        ax.plot([g['start_x'], g['start_x']], [bracket_y1, bracket_y1 - bracket_h1], color='#333333', lw=1.0, zorder=5)
-        ax.plot([g['end_x'], g['end_x']], [bracket_y1, bracket_y1 - bracket_h1], color='#333333', lw=1.0, zorder=5)
-        
-        ax.text(mid_x, bracket_y1 + y_max * 0.008, g['dpi'], ha='center', va='bottom', fontsize=8.0, fontweight='bold', color='#222222')
+        mid_y = (g['start_y'] + g['end_y']) / 2.0
+        ax.text(x_max * 1.01, mid_y, f"{g['treatment']} — {g['dpi']}", ha='left', va='center', fontsize=7.5, fontweight='bold', color='#1B365D')
 
-    # 3. Treatment Major Brackets (Upper Tier)
-    treatment_spans = []
-    cur_trt = None
-    t_start = 0
-    for i, g in enumerate(groups):
-        if g['treatment'] != cur_trt:
-            if cur_trt is not None:
-                treatment_spans.append({'treatment': cur_trt, 'start_x': groups[t_start]['start_x'], 'end_x': groups[i-1]['end_x']})
-            cur_trt = g['treatment']
-            t_start = i
-    if cur_trt is not None:
-        treatment_spans.append({'treatment': cur_trt, 'start_x': groups[t_start]['start_x'], 'end_x': groups[-1]['end_x']})
-
-    bracket_y2 = y_max * 1.055
-    bracket_h2 = y_max * 0.015
-    
-    for t_span in treatment_spans:
-        mid_x = (t_span['start_x'] + t_span['end_x']) / 2.0
-        ax.plot([t_span['start_x'], t_span['end_x']], [bracket_y2, bracket_y2], color='#0072B2', lw=1.3, zorder=5)
-        ax.plot([t_span['start_x'], t_span['start_x']], [bracket_y2, bracket_y2 - bracket_h2], color='#0072B2', lw=1.3, zorder=5)
-        ax.plot([t_span['end_x'], t_span['end_x']], [bracket_y2, bracket_y2 - bracket_h2], color='#0072B2', lw=1.3, zorder=5)
-        
-        trt_label = t_span['treatment']
-        ax.text(mid_x, bracket_y2 + y_max * 0.010, trt_label, ha='center', va='bottom', fontsize=9.5, fontweight='bold', color='#0072B2')
-
-def plot_vertical_dual_panel(df_panel_a, df_panel_b, title_a, title_b, main_title, output_prefix):
-    """Generates vertical dual-panel stacked barplots (2 rows, 1 column)."""
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 11), sharey=True)
+def plot_horizontal_dual_panel(df_panel_a, df_panel_b, title_a, title_b, main_title, output_prefix):
+    """Generates dual horizontal stacked barplots (1 row, 2 columns with samples as rows)."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 9.5), sharex=True)
     fig.suptitle(main_title, fontsize=15, fontweight='bold', y=0.985, color='#1B365D')
     
     panels = [(ax1, df_panel_a, title_a, 'A'), (ax2, df_panel_b, title_b, 'B')]
     
-    # Calculate global max for shared Y scale
+    # Calculate global max for X-axis scale
     max_reads_a = (df_panel_a['host_mapped'] + df_panel_a['viral_mapped']).max() if not df_panel_a.empty else 1e7
     max_reads_b = (df_panel_b['host_mapped'] + df_panel_b['viral_mapped']).max() if not df_panel_b.empty else 1e7
-    global_y_max = max(max_reads_a, max_reads_b) * 1.18
+    global_x_max = max(max_reads_a, max_reads_b) * 1.25
     
     for ax, df_sub, title_text, panel_letter in panels:
         if df_sub.empty:
             ax.text(0.5, 0.5, "No Data Available", ha='center', va='center', transform=ax.transAxes)
             continue
             
-        # Sort samples logically by Treatment rank, DPI, Sample ID
+        # Sort samples logically from TOP to BOTTOM (invert for barh so top sample is first)
         df_sorted = df_sub.copy()
         df_sorted['treatment_rank'] = df_sorted['treatment'].apply(lambda x: 0 if 'Mock' in str(x) else (1 if 'alone' in str(x).lower() or 'challenge' in str(x).lower() or 'eeev' in str(x).lower() else 2))
-        df_sorted = df_sorted.sort_values(by=['treatment_rank', 'dpi', 'sample_id']).reset_index(drop=True)
+        df_sorted = df_sorted.sort_values(by=['treatment_rank', 'dpi', 'sample_id'], ascending=[True, True, True]).reset_index(drop=True)
+        # Reverse dataframe so top sample is at y=0 (top of plot)
+        df_sorted = df_sorted.iloc[::-1].reset_index(drop=True)
         
-        x_positions = np.arange(len(df_sorted))
+        y_positions = np.arange(len(df_sorted))
         host_reads = df_sorted['host_mapped'].values
         viral_reads = df_sorted['viral_mapped'].values
         viral_pcts = df_sorted['viral_pct'].values
         host_pcts = df_sorted['host_pct'].values
         
-        # Plot Stacked Bars
-        bars_host = ax.bar(x_positions, host_reads, color=COLOR_HOST, edgecolor='white', width=0.68, label='Mouse (Host) Reads', zorder=3)
-        bars_viral = ax.bar(x_positions, viral_reads, bottom=host_reads, color=COLOR_VIRUS, edgecolor='white', width=0.68, label='Viral Reads', zorder=3)
+        # Plot Horizontal Stacked Bars (height=0.92 for minimal gap / tight rows)
+        bars_host = ax.barh(y_positions, host_reads, color=COLOR_HOST, edgecolor='none', height=0.92, label='Mouse (Host) Reads', zorder=3)
+        bars_viral = ax.barh(y_positions, viral_reads, left=host_reads, color=COLOR_VIRUS, edgecolor='none', height=0.92, label='Viral Reads', zorder=3)
         
-        # Percentage Annotations inside & above bars
+        # Percentage Annotations inside & right of horizontal bars
         for i in range(len(df_sorted)):
             h = host_reads[i]
             v = viral_reads[i]
@@ -209,32 +180,34 @@ def plot_vertical_dual_panel(df_panel_a, df_panel_b, title_a, title_b, main_titl
             h_pct = host_pcts[i]
             
             # Host % inside blue bar
-            if h_pct > 80:
-                ax.text(x_positions[i], h * 0.5, f"{h_pct:.1f}%", ha='center', va='center', color='white', fontsize=7.5, fontweight='bold')
+            if h_pct > 70:
+                ax.text(h * 0.5, y_positions[i], f"{h_pct:.1f}%", ha='center', va='center', color='white', fontsize=7.2, fontweight='bold')
                 
-            # Viral % above or inside vermilion bar
+            # Viral % inside or right of red bar
             if v_pct >= 0.5:
-                y_pos = h + (v / 2.0) if v > global_y_max * 0.06 else (h + v + global_y_max * 0.015)
-                text_col = 'white' if v > global_y_max * 0.06 else COLOR_VIRUS
-                ax.text(x_positions[i], y_pos, f"{v_pct:.1f}%", ha='center', va='bottom' if text_col != 'white' else 'center', color=text_col, fontsize=7.5, fontweight='bold')
+                x_pos = h + (v / 2.0) if v > global_x_max * 0.08 else (h + v + global_x_max * 0.012)
+                text_col = 'white' if v > global_x_max * 0.08 else COLOR_VIRUS
+                ax.text(x_pos, y_positions[i], f"{v_pct:.1f}%", ha='center' if text_col == 'white' else 'left', va='center', color=text_col, fontsize=7.2, fontweight='bold')
             elif v_pct > 0.01:
-                ax.text(x_positions[i], h + v + global_y_max * 0.012, f"{v_pct:.2f}%", ha='center', va='bottom', color=COLOR_VIRUS, fontsize=6.8, fontweight='bold', rotation=35)
+                ax.text(h + v + global_x_max * 0.01, y_positions[i], f"{v_pct:.2f}%", ha='left', va='center', color=COLOR_VIRUS, fontsize=6.8, fontweight='bold')
                 
-        # Add Two-Tiered Group Brackets & Shading
-        add_clean_group_brackets(ax, df_sorted, global_y_max)
+        # Add Y-axis background group shading
+        add_y_group_annotations(ax, df_sorted, global_x_max)
         
-        # Subplot Titles & Formatting (placed with pad=40)
-        ax.set_title(f"Panel {panel_letter}: {title_text}", fontsize=11, fontweight='bold', pad=40, color='#1B365D')
-        ax.set_xticks(x_positions)
-        ax.set_xticklabels([f"s{s}" for s in df_sorted['sample_id']], rotation=90, fontsize=8)
-        ax.set_xlabel("Sample ID", fontsize=9, fontweight='bold', labelpad=6)
-        ax.set_ylabel("Mapped Read Count (Millions)", fontsize=9, fontweight='bold')
-        ax.grid(axis='y', linestyle=':', alpha=0.4, zorder=1)
-        ax.set_ylim(0, global_y_max)
+        # Subplot Titles & Formatting
+        ax.set_title(f"Panel {panel_letter}: {title_text}", fontsize=11.5, fontweight='bold', pad=18, color='#1B365D')
+        ax.set_yticks(y_positions)
+        ax.set_yticklabels([f"s{s}" for s in df_sorted['sample_id']], fontsize=8, fontweight='bold')
+        ax.set_ylabel("Sample ID", fontsize=9.5, fontweight='bold')
+        ax.set_xlabel("Mapped Read Count (Millions)", fontsize=9.5, fontweight='bold', labelpad=8)
         
-        # Format Y Axis to Millions (e.g., 20M, 40M)
-        formatter = FuncFormatter(lambda y, _: f'{y*1e-6:.0f}M')
-        ax.yaxis.set_major_formatter(formatter)
+        # REMOVE ALL GRIDLINES INSIDE PLOT AREA
+        ax.grid(False)
+        ax.set_xlim(0, global_x_max * 1.22)
+        
+        # Format X Axis to Millions (e.g., 20M, 40M)
+        formatter = FuncFormatter(lambda x, _: f'{x*1e-6:.0f}M')
+        ax.xaxis.set_major_formatter(formatter)
 
         # Style Spines
         for spine in ['top', 'bottom', 'left', 'right']:
@@ -242,12 +215,12 @@ def plot_vertical_dual_panel(df_panel_a, df_panel_b, title_a, title_b, main_titl
             ax.spines[spine].set_color('black')
             ax.spines[spine].set_linewidth(0.8)
     
-    # Legend on top right of ax1
+    # Legend placed top right outside plot area
     handles, labels = ax1.get_legend_handles_labels()
-    ax1.legend(handles, labels, loc='upper right', bbox_to_anchor=(0.99, 1.28), frameon=True, facecolor='#F8F9FA', edgecolor='#CFD8DC', fontsize=8.5)
+    fig.legend(handles, labels, loc='upper right', bbox_to_anchor=(0.98, 0.96), frameon=True, facecolor='#F8F9FA', edgecolor='#CFD8DC', fontsize=8.8)
     
     plt.tight_layout()
-    fig.subplots_adjust(top=0.88, bottom=0.07, hspace=0.55)
+    fig.subplots_adjust(top=0.88, bottom=0.10, wspace=0.38)
     
     # Save PNG and SVG
     png_path = LAB_PLOTS_DIR / f"{output_prefix}.png"
@@ -256,7 +229,7 @@ def plot_vertical_dual_panel(df_panel_a, df_panel_b, title_a, title_b, main_titl
     fig.savefig(png_path, dpi=300, bbox_inches='tight')
     fig.savefig(svg_path, format='svg', bbox_inches='tight')
     plt.close(fig)
-    print(f"  [OK] Saved vertical figure: {png_path}")
+    print(f"  [OK] Saved horizontal figure: {png_path}")
 
 def main():
     print("Loading alignment mapping stats...")
@@ -264,13 +237,13 @@ def main():
     print(f"Total dataset records: {len(df)}")
     
     # -------------------------------------------------------------
-    # Figure 1: VEEV IN (Panel A - Top) vs SC (Panel B - Bottom)
+    # Figure 1: VEEV IN vs SC (Horizontal Stacked Bars)
     # -------------------------------------------------------------
-    print("\n1. Generating Vertical Figure 1: VEEV Intranasal vs. Subcutaneous...")
+    print("\n1. Generating Horizontal Figure 1: VEEV Intranasal vs. Subcutaneous...")
     veev_in = df[(df['dataset'] == 'mouse_veev') & (df['route'] == 'intranasal')]
     veev_sc = df[(df['dataset'] == 'mouse_veev') & (df['route'] == 'SC')]
     
-    plot_vertical_dual_panel(
+    plot_horizontal_dual_panel(
         df_panel_a=veev_in,
         df_panel_b=veev_sc,
         title_a="VEEV Intranasal (IN) — Study 045",
@@ -280,13 +253,13 @@ def main():
     )
     
     # -------------------------------------------------------------
-    # Figure 2: EEEV IN (Panel A - Top) vs SC (Panel B - Bottom) [excluding BDGR]
+    # Figure 2: EEEV IN vs SC (Horizontal Stacked Bars, Non-BDGR)
     # -------------------------------------------------------------
-    print("\n2. Generating Vertical Figure 2: EEEV Intranasal vs. Subcutaneous (Non-BDGR)...")
+    print("\n2. Generating Horizontal Figure 2: EEEV Intranasal vs. Subcutaneous (Non-BDGR)...")
     eeev_in = df[(df['dataset'] == 'mouse_eeev') & (df['route'] == 'intranasal')]
     eeev_sc = df[(df['dataset'] == 'mouse_eeev') & (df['route'] == 'SC') & (df['study_code'] == '048')]
     
-    plot_vertical_dual_panel(
+    plot_horizontal_dual_panel(
         df_panel_a=eeev_in,
         df_panel_b=eeev_sc,
         title_a="EEEV Intranasal (IN) — Study 046",
@@ -296,15 +269,15 @@ def main():
     )
     
     # -------------------------------------------------------------
-    # Figure 3: EEEV BDGR Antiviral Study
+    # Figure 3: EEEV BDGR Antiviral Study (Horizontal Stacked Bars)
     # -------------------------------------------------------------
-    print("\n3. Generating Vertical Figure 3: EEEV BDGR 251 Antiviral Study...")
+    print("\n3. Generating Horizontal Figure 3: EEEV BDGR 251 Antiviral Study...")
     bdgr_all = df[(df['dataset'] == 'mouse_eeev') & (df['sample_id'].astype(str).str.len() >= 5)]
     
     bdgr_panel_a = bdgr_all[bdgr_all['treatment'].isin(['Mock', 'EEEV'])].copy()
     bdgr_panel_b = bdgr_all[bdgr_all['treatment'].isin(['Mock', 'BDGR 251 + EEEV'])].copy()
     
-    plot_vertical_dual_panel(
+    plot_horizontal_dual_panel(
         df_panel_a=bdgr_panel_a,
         df_panel_b=bdgr_panel_b,
         title_a="EEEV Infection Alone (Untreated)",
@@ -313,7 +286,7 @@ def main():
         output_prefix="eeev_bdgr_study_reads_mapping"
     )
     
-    print("\n[OK] All vertical lab meeting mapping figures generated successfully in:")
+    print("\n[OK] All horizontal lab meeting mapping figures generated successfully in:")
     print(f"     PNG: {LAB_PLOTS_DIR}")
     print(f"     SVG: {SVG_DIR}")
 
