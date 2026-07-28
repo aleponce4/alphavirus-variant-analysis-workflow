@@ -1,67 +1,22 @@
-# Exclude the entire Benchmark_variant_callers folder
-Benchmark_variant_callers/
+# Nextflow outputs & work directories
+work/
+.nextflow/
+.nextflow.log*
+.nextflow.trace*
+results*/
 
-# Exclude BAM files (binary alignment map files)
-*.bam
-*.bam.bai
-*.bai
+# nf-test
+.nf-test/
+.nf-test.log*
 
-# Exclude other large sequencing files
-*.fastq
-*.fastq.gz
-*.fq
-*.fq.gz
-*.sam
-
-# Exclude temporary and cache files
-*.tmp
-*.temp
-.DS_Store
-Thumbs.db
-
-# Exclude log files
-*.log
-
-# Exclude Python cache files
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
+*.py[cod]
+*$py.class
+.pytest_cache/
 
-# Exclude Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-.ipynb
-
-# Exclude backup files
-*~
-*.bak
-*.backup
-
-# Haplotype analysis outputs
-Haplotype/cliquesnv/
-Haplotype/consensus/
-Haplotype/logs/
-Haplotype/viloca/
-
-# SNPGenie outputs and derived data
-SNPGenie/repo/
-SNPGenie/analysis/
-SNPGenie/input/
-SNPGenie/logs/
-SNPGenie/output/
-SNPGenie/runs/
-SNPGenie/summary/
-
-# Variant pipeline outputs
-Variant_discovery_pipeline/Analysis_output/
-Variant_discovery_pipeline/Analysis_output/*.svg
-Variant_discovery_pipeline/Analysis_output/*.tiff
-
-# Sample data helper file
-bam_head.txt
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
+*.swp

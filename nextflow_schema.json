@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/aleponce4/alphavirus-variant-analysis-workflow/main/nextflow_schema.json",
+  "title": "alphavirus-variant-analysis pipeline parameters",
+  "type": "object",
+  "definitions": {
+    "input_output_options": {
+      "title": "Input/output options",
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string",
+          "format": "file-path",
+          "description": "Path to comma-separated file containing information about the samples."
+        },
+        "fasta": {
+          "type": "string",
+          "format": "file-path",
+          "description": "Path to reference FASTA file."
+        },
+        "gff": {
+          "type": "string",
+          "format": "file-path",
+          "description": "Path to annotation GFF3 file."
+        },
+        "outdir": {
+          "type": "string",
+          "default": "./results",
+          "description": "Output directory for workflow results."
+        }
+      },
+      "required": ["input", "fasta", "gff"]
+    }
+  },
+  "properties": {
+    "input": { "$ref": "#/definitions/input_output_options/properties/input" },
+    "fasta": { "$ref": "#/definitions/input_output_options/properties/fasta" },
+    "gff": { "$ref": "#/definitions/input_output_options/properties/gff" },
+    "outdir": { "$ref": "#/definitions/input_output_options/properties/outdir" }
+  }
+}

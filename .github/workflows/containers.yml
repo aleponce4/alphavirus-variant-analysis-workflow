@@ -1,0 +1,14 @@
+name: Build & Push Containers
+
+on:
+  push:
+    paths:
+      - 'containers/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Container Stub
+        run: echo "No custom containers required yet. All dependencies pinned to quay.io/biocontainers."
