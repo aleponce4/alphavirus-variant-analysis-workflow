@@ -245,7 +245,7 @@ run_stage() {
     end_ts="$(ts_now)"
 
     if [ "${stage_name}" = "mapping" ] && [ "${PIPELINE_INPUT_MODE}" = "bam" ]; then
-        : 
+        :
     elif [ ! -f "${status_file}" ] || [ ! -s "${status_file}" ]; then
         # ensure each sample gets a row even if the script crashes before writing a status file
         printf "sample_id\tstage\tstatus\tstart_ts\tend_ts\terror\n" > "${status_file}"
@@ -399,4 +399,3 @@ log_metric "overall_status" "SUCCESS"
 echo "SUCCESS"
 echo "Run status: ${RUN_STATUS_FILE}"
 echo "Run report: ${RUN_REPORT_FILE}"
-

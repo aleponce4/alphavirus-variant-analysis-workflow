@@ -28,7 +28,7 @@ THREADS=4                              # [TEST] Reduced from 20 for quick testin
 # ========== TEST-SPECIFIC NOTES ==========
 # This configuration is designed to:
 # 1. Use a subset of BAM files (manually select in test_pipeline.sh)
-# 2. Call variants at lower coverage (100× instead of 5000×) for speed
+# 2. Call variants at lower coverage (100x instead of 5000x) for speed
 # 3. Still use reasonable quality thresholds to catch real variants
 # 4. Produce valid VCF output for annotation testing
 #

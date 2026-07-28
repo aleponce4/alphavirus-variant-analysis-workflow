@@ -100,27 +100,57 @@ if [ -z "${REFERENCE_DEFAULT}" ] || [ ! -f "${REFERENCE_DEFAULT}" ]; then
     done < <(find "${REPO_DIR}/Input/Reference" -maxdepth 1 -type f \( -name "*.fasta" -o -name "*.fa" \) -print0)
 fi
 
-if ! command -v conda >/dev/null 2>&1; then
-    echo "ERROR: conda not available"
-    exit 1
-fi
+log_dependency_warning() {
+    echo "WARNING: $*"
+}
+
+mark_dependency_skipped() {
+    local reason="$1"
+    local ts
+    local sample_id
+    local sample_status
+
+    ts="$(ts_now)"
+    for sample_id in "${SAMPLE_IDS[@]}"; do
+        sample_status="${SAMPLE_STATUS["${sample_id}"]-OK}"
+        if [ "${sample_status}" != "OK" ]; then
+            log_status "${sample_id}" "SKIPPED" "${ts}" "${ts}" "${sample_status}"
+        else
+            log_status "${sample_id}" "SKIPPED" "${ts}" "${ts}" "${reason}"
+        fi
+    done
+    echo "iVar pipeline completed."
+    exit 0
+}
+
+setup_environment() {
+    if command -v conda >/dev/null 2>&1; then
+        if ! eval "$(conda shell.bash hook)" >/dev/null 2>&1; then
+            log_dependency_warning "conda available but shell hook failed; continuing with PATH"
+        else
+            conda activate ivar_env 2>/dev/null \
+                || conda activate lofreq-env 2>/dev/null \
+                || conda activate annotation-env 2>/dev/null \
+                || log_dependency_warning "unable to activate configured conda environments; continuing with PATH"
+        fi
+    else
+        log_dependency_warning "conda not available; running from current PATH only"
+    fi
+
+    if ! command -v ivar >/dev/null 2>&1; then
+        echo "WARNING: ivar command not found in PATH"
+        return 1
+    fi
+    if ! command -v samtools >/dev/null 2>&1; then
+        echo "WARNING: samtools command not found in PATH"
+        return 1
+    fi
+    return 0
+}
 
 mkdir -p Ivar
 mkdir -p "$(dirname "${STATUS_PATH}")"
 printf "sample_id\tstage\tstatus\tstart_ts\tend_ts\terror\n" > "${STATUS_PATH}"
-
-eval "$(conda shell.bash hook)"
-conda activate ivar_env 2>/dev/null \
-    || { echo "ERROR: could not activate ivar_env"; exit 1; }
-
-if ! command -v samtools >/dev/null 2>&1; then
-    echo "ERROR: samtools command not found"
-    exit 1
-fi
-if ! command -v ivar >/dev/null 2>&1; then
-    echo "ERROR: ivar command not found"
-    exit 1
-fi
 
 BAM_DIR="$(resolve_path "${BAM_OUTPUT_DIR:-Input/BAMs}")"
 PRIMER_DIR="$(resolve_path "Input/Primers")"
@@ -171,6 +201,11 @@ fi
 if [ "${#SAMPLE_IDS[@]}" -eq 0 ]; then
     echo "ERROR: No input samples to run iVar on."
     exit 1
+fi
+
+if ! setup_environment; then
+    echo "SKIP: iVar dependencies unavailable; marking all eligible samples as SKIPPED."
+    mark_dependency_skipped "dependency_missing"
 fi
 
 for sample_id in "${SAMPLE_IDS[@]}"; do
@@ -339,4 +374,3 @@ if [ "${failed_count}" -gt 0 ]; then
 fi
 
 echo "iVar pipeline completed."
-

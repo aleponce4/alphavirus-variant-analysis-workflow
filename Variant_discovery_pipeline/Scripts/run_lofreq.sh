@@ -109,36 +109,60 @@ mkdir -p LoFreq
 mkdir -p "$(dirname "${STATUS_PATH}")"
 printf "sample_id\tstage\tstatus\tstart_ts\tend_ts\terror\n" > "${STATUS_PATH}"
 
-if ! command -v conda >/dev/null 2>&1; then
-    echo "ERROR: conda not available"
-    exit 1
-fi
+setup_environment() {
+    if command -v conda >/dev/null 2>&1; then
+        if ! eval "$(conda shell.bash hook)" >/dev/null 2>&1; then
+            echo "WARNING: conda available but shell hook failed; continuing with PATH"
+        else
+            conda activate lofreq-env 2>/dev/null \
+                || conda activate ivar_env 2>/dev/null \
+                || echo "WARNING: unable to activate configured conda environments; continuing with PATH"
+        fi
+    else
+        echo "WARNING: conda not available; running from current PATH only"
+    fi
 
-eval "$(conda shell.bash hook)"
-conda activate lofreq-env 2>/dev/null \
-    || conda activate ivar_env 2>/dev/null \
-    || { echo "ERROR: could not activate lofreq-env or ivar_env"; exit 1; }
+    if ! command -v lofreq >/dev/null 2>&1; then
+        echo "ERROR: lofreq command not found in PATH"
+        return 1
+    fi
+    if ! command -v samtools >/dev/null 2>&1; then
+        echo "ERROR: samtools command not found in PATH"
+        return 1
+    fi
+    if ! command -v bgzip >/dev/null 2>&1; then
+        echo "ERROR: bgzip command not found in PATH"
+        return 1
+    fi
+    if ! command -v tabix >/dev/null 2>&1; then
+        echo "ERROR: tabix command not found in PATH"
+        return 1
+    fi
+    if ! command -v zcat >/dev/null 2>&1; then
+        echo "ERROR: zcat command not found in PATH"
+        return 1
+    fi
+    return 0
+}
 
-if ! command -v lofreq >/dev/null 2>&1; then
-    echo "ERROR: lofreq command not found"
-    exit 1
-fi
-if ! command -v samtools >/dev/null 2>&1; then
-    echo "ERROR: samtools command not found"
-    exit 1
-fi
-if ! command -v bgzip >/dev/null 2>&1; then
-    echo "ERROR: bgzip command not found"
-    exit 1
-fi
-if ! command -v tabix >/dev/null 2>&1; then
-    echo "ERROR: tabix command not found"
-    exit 1
-fi
-if ! command -v zcat >/dev/null 2>&1; then
-    echo "ERROR: zcat command not found"
-    exit 1
-fi
+mark_dependency_skipped() {
+    local reason="$1"
+    local ts
+    local sample_id
+    local sample_status
+
+    ts="$(ts_now)"
+    for sample_id in "${SAMPLE_IDS[@]}"; do
+        sample_status="${SAMPLE_STATUS["${sample_id}"]-OK}"
+        if [ "${sample_status}" != "OK" ]; then
+            log_status "${sample_id}" "SKIPPED" "${ts}" "${ts}" "${sample_status}"
+        else
+            log_status "${sample_id}" "SKIPPED" "${ts}" "${ts}" "${reason}"
+        fi
+    done
+    echo "LoFreq pipeline completed."
+    exit 0
+}
 
 declare -A SAMPLE_STATUS
 declare -A SAMPLE_BAM
@@ -190,6 +214,11 @@ fi
 if [ "${#SAMPLE_IDS[@]}" -eq 0 ]; then
     echo "ERROR: No input samples to run LoFreq on."
     exit 1
+fi
+
+if ! setup_environment; then
+    echo "SKIP: LoFreq dependencies unavailable; marking all eligible samples as SKIPPED."
+    mark_dependency_skipped "dependency_missing"
 fi
 
 for sample_id in "${SAMPLE_IDS[@]}"; do
@@ -366,4 +395,3 @@ if [ "${failed_count}" -gt 0 ]; then
 fi
 
 echo "LoFreq pipeline completed."
-

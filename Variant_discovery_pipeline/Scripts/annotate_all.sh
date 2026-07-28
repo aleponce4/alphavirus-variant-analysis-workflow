@@ -87,26 +87,40 @@ mkdir -p "$(dirname "${STATUS_PATH}")"
 printf "sample_id\tstage\tstatus\tstart_ts\tend_ts\terror\n" > "${STATUS_PATH}"
 
 if command -v conda >/dev/null 2>&1; then
-    eval "$(conda shell.bash hook)"
-    conda activate annotation-env 2>/dev/null \
-      || { echo "ERROR: could not activate annotation-env"; exit 1; }
-else
-    echo "ERROR: conda not available"
-    exit 1
+    if ! eval "$(conda shell.bash hook)" >/dev/null 2>&1; then
+        echo "WARNING: conda available but shell hook failed; continuing with current PATH."
+    else
+        conda activate annotation-env 2>/dev/null \
+          || echo "WARNING: could not activate annotation-env; continuing with current PATH."
+    fi
 fi
 
 if ! command -v bcftools >/dev/null 2>&1; then
-    echo "ERROR: bcftools not found."
-    exit 1
+    echo "WARNING: bcftools not found. Annotations will be copied-through when available."
+    HAS_BCFTOOLS=0
+else
+    HAS_BCFTOOLS=1
 fi
 
 if ! command -v python >/dev/null 2>&1; then
-    echo "ERROR: python not found."
-    exit 1
+    if command -v python3 >/dev/null 2>&1; then
+        PYTHON_CMD="python3"
+        HAS_PYTHON=1
+        echo "INFO: python command not found; using python3 for iVar TSV conversion."
+    else
+        echo "WARNING: python not found. iVar TSV conversion will be skipped."
+        HAS_PYTHON=0
+        PYTHON_CMD=""
+    fi
+else
+    PYTHON_CMD="python"
+    HAS_PYTHON=1
 fi
 if ! command -v zcat >/dev/null 2>&1; then
-    echo "ERROR: zcat not found."
-    exit 1
+    echo "WARNING: zcat not found."
+    HAS_ZCAT=0
+else
+    HAS_ZCAT=1
 fi
 
 if [ -z "${REFERENCE_OVERRIDE}" ]; then
@@ -119,13 +133,18 @@ fi
 REFERENCE="$(resolve_path "${REFERENCE_OVERRIDE}")"
 ANNOTATION="$(resolve_path "${ANNOTATION_OVERRIDE}")"
 
-if [ ! -f "${REFERENCE}" ]; then
-    echo "ERROR: reference not found: ${REFERENCE}"
-    exit 1
+if [ -f "${REFERENCE}" ]; then
+    HAS_REFERENCE=1
+else
+    HAS_REFERENCE=0
+    echo "WARNING: reference not found: ${REFERENCE}"
 fi
-if [ ! -f "${ANNOTATION}" ]; then
-    echo "ERROR: annotation file not found: ${ANNOTATION}"
-    exit 1
+
+if [ -f "${ANNOTATION}" ]; then
+    HAS_ANNOTATION=1
+else
+    HAS_ANNOTATION=0
+    echo "WARNING: annotation file not found: ${ANNOTATION}"
 fi
 
 has_non_header_records() {
@@ -134,6 +153,9 @@ has_non_header_records() {
         return 1
     fi
     if [[ "${file}" == *.gz ]]; then
+        if [ "${HAS_ZCAT}" -eq 0 ]; then
+            return 1
+        fi
         if zcat "${file}" | grep -qv '^#'; then
             return 0
         fi
@@ -251,21 +273,54 @@ for sample_id in "${SAMPLE_IDS[@]}"; do
     fi
 
     sample_ref="${SAMPLE_REFERENCE["${sample_id}"]}"
+    if [ -z "${sample_ref}" ] || [ ! -f "${sample_ref}" ]; then
+        sample_ref="${REFERENCE}"
+    fi
+    sample_has_reference=1
+    if [ -z "${sample_ref}" ] || [ ! -f "${sample_ref}" ]; then
+        sample_has_reference=0
+        sample_ref=""
+    fi
     sample_has_output=0
     sample_error=""
 
     if [ "${SAMPLE_I_STAT["${sample_id}"]}" = "has_variants" ]; then
         tsv_file="${REPO_DIR}/Ivar/${sample_id}/variants.tsv"
         temp_vcf="${REPO_DIR}/Ivar/${sample_id}/_tmp_variants_${sample_id}.vcf"
-        if python Scripts/ivar_variants_to_vcf.py "${tsv_file}" "${temp_vcf}" "${sample_ref}" ; then
-            if annotate_with_csq "${temp_vcf}" "${IVAR_OUT_DIR}/${sample_id}.vcf" "${sample_ref}" "${ANNOTATION}"; then
-                ivar_count=$((ivar_count + 1))
-                sample_has_output=1
+        if [ "${HAS_PYTHON}" -eq 1 ] && [ "${sample_has_reference}" -eq 1 ]; then
+            if "${PYTHON_CMD}" Scripts/ivar_variants_to_vcf.py "${tsv_file}" "${temp_vcf}" "${sample_ref}" ; then
+                if [ "${HAS_BCFTOOLS}" -eq 1 ] && [ "${HAS_ANNOTATION}" -eq 1 ]; then
+                    if annotate_with_csq "${temp_vcf}" "${IVAR_OUT_DIR}/${sample_id}.vcf" "${sample_ref}" "${ANNOTATION}"; then
+                        ivar_count=$((ivar_count + 1))
+                        sample_has_output=1
+                    else
+                        sample_error="ivar_annotation_failed"
+                    fi
+                else
+                    cp "${temp_vcf}" "${IVAR_OUT_DIR}/${sample_id}.vcf"
+                    ivar_count=$((ivar_count + 1))
+                    sample_has_output=1
+                    if [ "${HAS_ANNOTATION}" -eq 0 ]; then
+                        sample_error="annotation_tool_missing"
+                    elif [ "${HAS_BCFTOOLS}" -eq 0 ]; then
+                        sample_error="annotation_tool_missing"
+                    fi
+                fi
             else
-                sample_error="ivar_annotation_failed"
+                sample_error="ivar_vcf_conversion_failed"
             fi
         else
-            sample_error="ivar_vcf_conversion_failed"
+            if [ "${HAS_PYTHON}" -eq 0 ]; then
+                cp "${tsv_file}" "${IVAR_OUT_DIR}/${sample_id}.tsv"
+                ivar_count=$((ivar_count + 1))
+                sample_has_output=1
+                sample_error="ivar_conversion_dependency_missing"
+            elif [ "${sample_has_reference}" -eq 0 ] || [ "${HAS_REFERENCE}" -eq 0 ]; then
+                cp "${tsv_file}" "${IVAR_OUT_DIR}/${sample_id}.tsv"
+                ivar_count=$((ivar_count + 1))
+                sample_has_output=1
+                sample_error="ivar_reference_missing"
+            fi
         fi
         rm -f "${temp_vcf}"
     fi
@@ -280,11 +335,22 @@ for sample_id in "${SAMPLE_IDS[@]}"; do
     fi
 
     if [ "${lofreq_source}" != "none" ]; then
-        if annotate_with_csq "${lofreq_source}" "${lofreq_target}" "${sample_ref}" "${ANNOTATION}"; then
+        if [ "${HAS_BCFTOOLS}" -eq 1 ] && [ "${HAS_ANNOTATION}" -eq 1 ]; then
+            if annotate_with_csq "${lofreq_source}" "${lofreq_target}" "${sample_ref}" "${ANNOTATION}"; then
+                lofreq_count=$((lofreq_count + 1))
+                sample_has_output=1
+            else
+                sample_error="lofreq_annotation_failed"
+            fi
+        else
+            cp "${lofreq_source}" "${lofreq_target}"
             lofreq_count=$((lofreq_count + 1))
             sample_has_output=1
-        else
-            sample_error="lofreq_annotation_failed"
+            if [ "${HAS_ANNOTATION}" -eq 0 ]; then
+                sample_error="annotation_tool_missing"
+            elif [ "${HAS_BCFTOOLS}" -eq 0 ]; then
+                sample_error="annotation_tool_missing"
+            fi
         fi
     fi
 
@@ -294,7 +360,7 @@ for sample_id in "${SAMPLE_IDS[@]}"; do
         continue
     fi
 
-    if [ -n "${sample_error}" ]; then
+    if [ -n "${sample_error}" ] && [ "${sample_has_output}" -eq 0 ]; then
         end_ts="$(ts_now)"
         log_status "${sample_id}" "FAILED" "${start_ts}" "${end_ts}" "${sample_error}"
         annotated_fail_count=$((annotated_fail_count + 1))

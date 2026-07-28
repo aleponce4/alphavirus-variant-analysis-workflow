@@ -3,6 +3,28 @@
 # Pipeline Configuration for iVar and LoFreq
 # Modify these values as needed
 
+# Ensure conda is discoverable even if not on PATH (common in non-interactive runs)
+if ! command -v conda >/dev/null 2>&1; then
+    PIPELINE_CONDA_CANDIDATES=(
+        "${PIPELINE_CONDA_PATH:-}"
+        "${CONDA_EXE:-}"
+        "/home/alex_ubuntu/miniconda3/bin/conda"
+        "${HOME}/miniconda3/bin/conda"
+        "/opt/conda/bin/conda"
+        "/usr/local/miniconda3/bin/conda"
+        "/usr/share/miniconda3/bin/conda"
+    )
+
+    for candidate in "${PIPELINE_CONDA_CANDIDATES[@]}"; do
+        if [ -n "${candidate}" ] && [ -x "${candidate}" ]; then
+            export PATH="$(dirname "${candidate}"):${PATH}"
+            break
+        fi
+    done
+
+    unset PIPELINE_CONDA_CANDIDATES candidate
+fi
+
 # Input mode controls pipeline entrypoint
 # Options:
 #   bam  - start from pre-aligned BAM files in Input/BAMs
@@ -52,4 +74,3 @@ SKIP_EXISTING_BAM_MAP="${SKIP_EXISTING_BAM_MAP:-1}"
 
 # Target contig restriction
 TARGET_CONTIG="${TARGET_CONTIG:-target_contig}"   # Restrict to Target reads before processing
-
