@@ -24,6 +24,7 @@ process IVAR_VARIANTS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
         ivar: \$(ivar version 2>&1 | grep iVar | sed 's/iVar version //')
     END_VERSIONS
     """
@@ -35,6 +36,7 @@ process IVAR_VARIANTS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
         ivar: \$(ivar version 2>&1 | grep iVar | sed 's/iVar version //')
     END_VERSIONS
     """

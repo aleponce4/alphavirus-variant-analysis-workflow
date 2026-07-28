@@ -1,0 +1,49 @@
+nextflow_process {
+
+    name "Test Process SAMTOOLS_FAIDX"
+    script "modules/local/samtools/faidx/main.nf"
+    process "SAMTOOLS_FAIDX"
+
+    test("samtools_faidx - stub") {
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(process.out).match()
+        }
+
+    }
+
+    test("samtools_faidx - real") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.fai[0][2]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+}

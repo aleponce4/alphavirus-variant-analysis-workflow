@@ -1,0 +1,49 @@
+{
+    "samtools_faidx - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "viral_ref"
+                        },
+                        "viral_ref.test.fasta:md5,08371193537771471247b3510f82060c",
+                        "viral_ref.test.fasta.fai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,6bbe80a2e14bd61202ca63e12d66027f"
+                ],
+                "fai": [
+                    [
+                        {
+                            "id": "viral_ref"
+                        },
+                        "viral_ref.test.fasta:md5,08371193537771471247b3510f82060c",
+                        "viral_ref.test.fasta.fai:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,6bbe80a2e14bd61202ca63e12d66027f"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:19:09.046142"
+    },
+    "samtools_faidx - real": {
+        "content": [
+            [
+                "versions.yml:md5,6bbe80a2e14bd61202ca63e12d66027f"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:19:15.342387"
+    }
+}

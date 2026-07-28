@@ -1,0 +1,47 @@
+{
+    "lofreq_call - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "sampleA"
+                        },
+                        "sampleA.vcf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,15df54aa4144c3622e5033b9cc762407"
+                ],
+                "vcf": [
+                    [
+                        {
+                            "id": "sampleA"
+                        },
+                        "sampleA.vcf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,15df54aa4144c3622e5033b9cc762407"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:18:56.621122"
+    },
+    "lofreq_call - real": {
+        "content": [
+            [
+                "versions.yml:md5,15df54aa4144c3622e5033b9cc762407"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:19:04.091302"
+    }
+}

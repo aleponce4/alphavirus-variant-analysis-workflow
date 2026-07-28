@@ -21,6 +21,9 @@ process EXTRACT_VIRAL_BAM {
     samtools view -b ${bam} ${contig} | samtools sort -o ${prefix}.viral_only.bam -
     samtools index ${prefix}.viral_only.bam
 
+    READ_COUNT=\$(samtools view -c ${prefix}.viral_only.bam)
+    echo "Extracted \${READ_COUNT} reads for ${contig} in ${prefix}"
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')

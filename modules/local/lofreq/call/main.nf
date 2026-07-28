@@ -17,8 +17,23 @@ process LOFREQ_CALL {
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
+    def input_bam = bam
     """
-    lofreq call-parallel --pp-threads ${task.cpus} -f ${fasta} --min-cov ${params.lofreq_min_depth} --min-bq ${params.lofreq_min_bq} --min-alt-bq ${params.lofreq_min_bq} --min-mq ${params.lofreq_min_mq} --sig ${params.lofreq_sig} -o ${prefix}.vcf ${bam}
+    if [ "${params.lofreq_enable_baq}" = "true" ]; then
+        echo "WARNING: BAQ enabled for LoFreq (may crash on STAR spliced alignment BAMs)"
+        lofreq viterbi -f ${fasta} ${bam} | samtools sort -o ${prefix}.viterbi.bam -
+        samtools index ${prefix}.viterbi.bam
+        input_bam="${prefix}.viterbi.bam"
+    fi
+
+    if [ "${params.lofreq_enable_indelqual}" = "true" ]; then
+        echo "WARNING: Indel quality calculation enabled for LoFreq"
+        lofreq indelqual --dindel -f ${fasta} \$input_bam -o ${prefix}.indelqual.bam
+        samtools index ${prefix}.indelqual.bam
+        input_bam="${prefix}.indelqual.bam"
+    fi
+
+    lofreq call-parallel --pp-threads ${task.cpus} -f ${fasta} --min-cov ${params.lofreq_min_depth} --min-bq ${params.lofreq_min_bq} --min-alt-bq ${params.lofreq_min_bq} --min-mq ${params.lofreq_min_mq} --sig ${params.lofreq_sig} -o ${prefix}.vcf ${input_bam}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

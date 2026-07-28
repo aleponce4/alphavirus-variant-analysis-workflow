@@ -1,0 +1,47 @@
+{
+    "ivar_consensus - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "sampleA"
+                        },
+                        "sampleA.consensus.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,4f673ca617ade18282f0e773a6e66bb4"
+                ],
+                "consensus": [
+                    [
+                        {
+                            "id": "sampleA"
+                        },
+                        "sampleA.consensus.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,4f673ca617ade18282f0e773a6e66bb4"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:18:44.360145"
+    },
+    "ivar_consensus - real": {
+        "content": [
+            [
+                "versions.yml:md5,4f673ca617ade18282f0e773a6e66bb4"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:18:50.405651"
+    }
+}
