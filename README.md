@@ -4,7 +4,10 @@
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A524.04.0-brightgreen.svg)](https://www.nextflow.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An automated Nextflow DSL2 workflow for intra-host viral variant discovery, functional annotation, evolutionary selection analysis, and haplotype reconstruction in alphavirus RNA-seq datasets (e.g., VEEV, EEEV). Originally developed for routine lab analysis and modernized to provide containerized, reproducible execution across datasets.
+An automated Nextflow DSL2 workflow for intra-host viral variant discovery, functional annotation, evolutionary selection analysis, and haplotype reconstruction in viral sequencing datasets. Originally developed for routine alphavirus research (e.g., VEEV, EEEV, CHIKV) and modernized to provide containerized, reproducible execution across viral datasets.
+
+> [!NOTE]
+> While optimized and validated for alphaviruses, the pipeline architecture is virus-agnostic for any viral reference FASTA and GFF3 annotations. *Note: Not tested for highly recombinant or hypervariable viruses.*
 
 ---
 
