@@ -10,7 +10,7 @@ nextflow_pipeline {
                 input         = "${projectDir}/assets/samplesheet.test.csv"
                 fasta         = "${projectDir}/tests/data/viral_ref.test.fasta"
                 gff           = "${projectDir}/tests/data/viral_ref.test.gff3"
-                outdir        = "results_e2e"
+                outdir        = "${outputDir}"
                 run_ivar      = true
                 run_lofreq    = true
                 run_annotation= true
@@ -22,7 +22,7 @@ nextflow_pipeline {
 
         then {
             assert workflow.success
-            assert path("${params.outdir}/mouse_veev/Reports/tables/consolidated_sample_summary.tsv").exists()
+            assert path("${outputDir}/mouse_veev/Reports/tables/consolidated_sample_summary.tsv").exists()
         }
 
     }
