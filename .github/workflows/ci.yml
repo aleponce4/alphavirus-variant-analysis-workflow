@@ -13,6 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure executable permissions on bin scripts
+        run: chmod +x bin/*
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -63,6 +66,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure executable permissions on bin scripts
+        run: chmod +x bin/*
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -82,3 +88,4 @@ jobs:
         if: hashFiles(format('tests/{0}/**', matrix.suite)) != ''
         run: |
           nf-test test --profile docker
+

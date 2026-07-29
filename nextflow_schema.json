@@ -16,26 +16,170 @@
         "fasta": {
           "type": "string",
           "format": "file-path",
-          "description": "Path to reference FASTA file."
+          "description": "Path to viral reference FASTA file."
         },
         "gff": {
           "type": "string",
           "format": "file-path",
-          "description": "Path to annotation GFF3 file."
+          "description": "Path to annotation GFF3 file containing CDS features."
         },
         "outdir": {
           "type": "string",
           "default": "./results",
           "description": "Output directory for workflow results."
+        },
+        "dataset": {
+          "type": "string",
+          "default": "mouse_veev",
+          "description": "Dataset identifier used in output directory hierarchy."
+        },
+        "publish_dir_mode": {
+          "type": "string",
+          "default": "copy",
+          "description": "Mode for publishing files to output directory (copy, symlink, link)."
+        },
+        "viral_contig": {
+          "type": "string",
+          "default": "KP282671.1",
+          "description": "Target viral contig identifier in BAM files."
         }
       },
       "required": ["input", "fasta", "gff"]
+    },
+    "ivar_options": {
+      "title": "iVar parameters",
+      "type": "object",
+      "properties": {
+        "ivar_min_depth": {
+          "type": "integer",
+          "default": 1000,
+          "description": "Minimum depth to call variant in iVar."
+        },
+        "ivar_min_freq": {
+          "type": "number",
+          "default": 0.01,
+          "description": "Minimum frequency threshold for iVar."
+        },
+        "ivar_min_bq": {
+          "type": "integer",
+          "default": 30,
+          "description": "Minimum base quality for iVar."
+        },
+        "ivar_consensus_min_cov": {
+          "type": "integer",
+          "default": 10,
+          "description": "Minimum coverage depth for consensus calling in iVar."
+        },
+        "ivar_consensus_threshold": {
+          "type": "number",
+          "default": 0.5,
+          "description": "Allele frequency threshold for consensus nucleotide insertion."
+        }
+      }
+    },
+    "lofreq_options": {
+      "title": "LoFreq parameters",
+      "type": "object",
+      "properties": {
+        "lofreq_min_depth": {
+          "type": "integer",
+          "default": 1000,
+          "description": "Minimum coverage depth for LoFreq calling."
+        },
+        "lofreq_min_freq": {
+          "type": "number",
+          "default": 0.01,
+          "description": "Minimum variant allele frequency for LoFreq."
+        },
+        "lofreq_min_bq": {
+          "type": "integer",
+          "default": 30,
+          "description": "Minimum base quality for LoFreq."
+        },
+        "lofreq_min_mq": {
+          "type": "integer",
+          "default": 60,
+          "description": "Minimum mapping quality for LoFreq."
+        },
+        "lofreq_sig": {
+          "type": "number",
+          "default": 0.01,
+          "description": "Significance threshold for LoFreq variant call."
+        },
+        "lofreq_enable_indelqual": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable indel quality assessment in LoFreq."
+        },
+        "lofreq_enable_baq": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable base alignment quality calculation in LoFreq."
+        }
+      }
+    },
+    "workflow_toggles": {
+      "title": "Workflow Stage Toggles",
+      "type": "object",
+      "properties": {
+        "run_ivar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable iVar variant and consensus subworkflow."
+        },
+        "run_lofreq": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable LoFreq variant calling subworkflow."
+        },
+        "run_annotation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable functional annotation via bcftools csq."
+        },
+        "run_coverage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable coverage depth summary and QC."
+        },
+        "run_snpgenie": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable SNPGenie evolutionary selection subworkflow."
+        },
+        "run_haplotype": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable CliqueSNV and VILOCA haplotype reconstruction."
+        }
+      }
     }
   },
   "properties": {
     "input": { "$ref": "#/definitions/input_output_options/properties/input" },
     "fasta": { "$ref": "#/definitions/input_output_options/properties/fasta" },
     "gff": { "$ref": "#/definitions/input_output_options/properties/gff" },
-    "outdir": { "$ref": "#/definitions/input_output_options/properties/outdir" }
+    "outdir": { "$ref": "#/definitions/input_output_options/properties/outdir" },
+    "dataset": { "$ref": "#/definitions/input_output_options/properties/dataset" },
+    "publish_dir_mode": { "$ref": "#/definitions/input_output_options/properties/publish_dir_mode" },
+    "viral_contig": { "$ref": "#/definitions/input_output_options/properties/viral_contig" },
+    "ivar_min_depth": { "$ref": "#/definitions/ivar_options/properties/ivar_min_depth" },
+    "ivar_min_freq": { "$ref": "#/definitions/ivar_options/properties/ivar_min_freq" },
+    "ivar_min_bq": { "$ref": "#/definitions/ivar_options/properties/ivar_min_bq" },
+    "ivar_consensus_min_cov": { "$ref": "#/definitions/ivar_options/properties/ivar_consensus_min_cov" },
+    "ivar_consensus_threshold": { "$ref": "#/definitions/ivar_options/properties/ivar_consensus_threshold" },
+    "lofreq_min_depth": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_depth" },
+    "lofreq_min_freq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_freq" },
+    "lofreq_min_bq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_bq" },
+    "lofreq_min_mq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_mq" },
+    "lofreq_sig": { "$ref": "#/definitions/lofreq_options/properties/lofreq_sig" },
+    "lofreq_enable_indelqual": { "$ref": "#/definitions/lofreq_options/properties/lofreq_enable_indelqual" },
+    "lofreq_enable_baq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_enable_baq" },
+    "run_ivar": { "$ref": "#/definitions/workflow_toggles/properties/run_ivar" },
+    "run_lofreq": { "$ref": "#/definitions/workflow_toggles/properties/run_lofreq" },
+    "run_annotation": { "$ref": "#/definitions/workflow_toggles/properties/run_annotation" },
+    "run_coverage": { "$ref": "#/definitions/workflow_toggles/properties/run_coverage" },
+    "run_snpgenie": { "$ref": "#/definitions/workflow_toggles/properties/run_snpgenie" },
+    "run_haplotype": { "$ref": "#/definitions/workflow_toggles/properties/run_haplotype" }
   }
 }
