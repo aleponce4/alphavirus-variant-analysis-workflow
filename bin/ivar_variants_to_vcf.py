@@ -19,11 +19,11 @@ def parse_ivar_tsv(tsv_file):
             fields = line.split('\t')
             if len(fields) >= 12:
                 try:
-                    alt_freq = float(fields[10])
+                    alt_freq = float(fields[9])
                 except (IndexError, ValueError):
                     alt_freq = 0.0
                 try:
-                    pval = float(fields[12]) if len(fields) > 12 else 1.0
+                    pval = float(fields[11]) if len(fields) > 11 else 1.0
                 except (IndexError, ValueError):
                     pval = 1.0
 
@@ -33,11 +33,11 @@ def parse_ivar_tsv(tsv_file):
                     'REF': fields[2],
                     'ALT': fields[3],
                     'REF_DP': int(fields[4]) if fields[4].isdigit() else 0,
-                    'ALT_DP': int(fields[7]) if fields[7].isdigit() else 0,
+                    'ALT_DP': int(fields[5]) if fields[5].isdigit() else 0,
                     'ALT_FREQ': alt_freq,
-                    'TOTAL_DP': int(fields[11]) if fields[11].isdigit() else 0,
+                    'TOTAL_DP': int(fields[10]) if fields[10].isdigit() else 0,
                     'PVAL': pval,
-                    'PASS': fields[13] if len(fields) > 13 else 'TRUE'
+                    'PASS': fields[12] if len(fields) > 12 else 'TRUE'
                 }
                 variants.append(variant)
     return variants
