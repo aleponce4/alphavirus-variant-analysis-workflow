@@ -4,7 +4,7 @@ set -euo pipefail
 echo "Running directory structure lint checks..."
 
 MANDATORY_FILES=(
-    "AGENT.md"
+    "docs/AGENT.md"
     "CHANGELOG.md"
     "main.nf"
     "nextflow.config"

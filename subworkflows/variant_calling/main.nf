@@ -20,7 +20,7 @@ workflow VARIANT_CALLING {
     ch_versions = Channel.empty()
 
     // 1. Extract viral BAMs
-    EXTRACT_VIRAL_BAM(ch_samples, params.viral_contig)
+    EXTRACT_VIRAL_BAM(ch_samples, params.viral_contig ?: '')
     ch_viral_bams = EXTRACT_VIRAL_BAM.out.bam
     ch_versions   = ch_versions.mix(EXTRACT_VIRAL_BAM.out.versions)
 

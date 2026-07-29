@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/aleponce4/alphavirus-variant-analysis-workflow/main/nextflow_schema.json",
-  "title": "alphavirus-variant-analysis pipeline parameters",
+  "title": "alphavirus-variant-analysis-workflow pipeline parameters",
   "type": "object",
   "allOf": [
     {
@@ -37,8 +37,8 @@
         },
         "dataset": {
           "type": "string",
-          "default": "mouse_veev",
-          "description": "Dataset identifier used in output directory hierarchy."
+          "default": "viral_analysis",
+          "description": "Dataset identifier used in reporting outputs."
         },
         "publish_dir_mode": {
           "type": "string",
@@ -47,7 +47,7 @@
         },
         "viral_contig": {
           "type": "string",
-          "default": "KP282671.1",
+          "default": null,
           "description": "Target viral contig identifier in BAM files."
         }
       },

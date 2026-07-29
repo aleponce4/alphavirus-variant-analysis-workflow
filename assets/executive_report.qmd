@@ -7,7 +7,7 @@ format:
     toc: true
     theme: cosmo
 params:
-  dataset: "mouse_veev"
+  dataset: "viral_analysis"
   has_selection: false
   has_haplotype: false
 ---
@@ -21,7 +21,7 @@ import os, glob, base64
 import pandas as pd
 from IPython.display import HTML, display
 
-dataset = params.get("dataset", "mouse_veev")
+dataset = params.get("dataset", "viral_analysis")
 has_selection = str(params.get("has_selection", "false")).lower() == "true"
 has_haplotype = str(params.get("has_haplotype", "false")).lower() == "true"
 

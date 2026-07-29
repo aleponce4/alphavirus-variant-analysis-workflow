@@ -22,7 +22,7 @@ nextflow_pipeline {
 
         then {
             assert workflow.success
-            assert path("${outputDir}/mouse_veev/Reports/tables/consolidated_sample_summary.tsv").exists()
+            assert path("${outputDir}/Reports/tables/consolidated_sample_summary.tsv").exists()
         }
 
     }

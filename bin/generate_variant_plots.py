@@ -10,7 +10,7 @@ def main():
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--vcf-dir", required=True, help="Path to VCF files")
     parser.add_argument("--outdir", required=True, help="Output directory for plots")
-    parser.add_argument("--dataset", default="mouse_veev", help="Dataset name")
+    parser.add_argument("--dataset", default="viral_analysis", help="Dataset name")
 
     args = parser.parse_args()
 

@@ -1,13 +1,13 @@
-# Alphavirus Intra-host Variant Analysis Workflow (Nextflow DSL2)
+# alphavirus-variant-analysis-workflow
 
-[![CI](https://github.com/aleponce4/alphavirus-variant-analysis-workflow/actions/workflows/ci.yml/badge.svg)](https://github.com/aleponce4/alphavirus-variant-analysis-workflow/actions/workflows/ci.yml)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A524.04.0-brightgreen.svg)](https://www.nextflow.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![CI](https://github.com/aleponce4/alphavirus-variant-analysis-workflow/actions/workflows/ci.yml/badge.svg)
+![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A524.04.0-brightgreen)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-An automated Nextflow DSL2 workflow for intra-host viral variant discovery, functional annotation, evolutionary selection analysis, and haplotype reconstruction in viral sequencing datasets. Originally developed for routine alphavirus research (e.g., VEEV, EEEV, CHIKV) and modernized to provide containerized, reproducible execution across viral datasets.
+Containerized Nextflow DSL2 workflow for viral intra-host variant calling (iSNV), quasispecies haplotype reconstruction, and evolutionary selection analysis.
 
 > [!NOTE]
-> While optimized and validated for alphaviruses, the pipeline architecture is virus-agnostic for any viral reference FASTA and GFF3 annotations. *Note: Not tested for highly recombinant or hypervariable viruses.*
+> **Note on Organism Compatibility**: Although named and validated on Alphavirus datasets (VEEV, EEEV), the pipeline engine is virus-agnostic. It processes any haploid viral genome given a valid reference FASTA and GFF3 annotation file.
 
 ---
 
@@ -90,8 +90,8 @@ sampleB,data/sampleB.bam,data/sampleB.bam.bai,infected,7
 | `--fasta` | `null` | Reference FASTA file |
 | `--gff` | `null` | Annotation GFF3 file (must contain `CDS` features) |
 | `--outdir` | `./results` | Directory for published results |
-| `--dataset` | `mouse_veev` | Dataset label used in output directory hierarchy |
-| `--viral_contig` | `KP282671.1` | Target viral contig name |
+| `--dataset` | `viral_analysis` | Dataset label used in reporting outputs |
+| `--viral_contig` | `null` | Target viral contig name (extracted dynamically if null) |
 | `--publish_dir_mode` | `copy` | Method for publishing output files (`copy`, `symlink`, `link`) |
 | `--ivar_min_depth` | `1000` | Minimum depth for iVar variant calling |
 | `--ivar_min_freq` | `0.01` | Minimum allele frequency for iVar |
@@ -136,35 +136,35 @@ sampleB,data/sampleB.bam,data/sampleB.bam.bai,infected,7
 
 ## Output Layout
 
-Results are structured per dataset as follows:
+Results are published directly under the specified output directory:
 
 ```
 results/
-└── <dataset>/
-    ├── LoFreq/
-    │   └── <sample>/
-    │       ├── variants.filtered.vcf.gz
-    │       ├── variants.filtered.vcf.gz.tbi
-    │       └── qc_stats.txt
-    ├── Ivar/
-    │   └── <sample>/
-    │       ├── variants.tsv
-    │       └── consensus.fa
-    ├── Annotated_variants/
-    │   ├── LoFreq/
-    │   └── Ivar/
-    ├── Coverage/
-    │   └── <sample>/
-    │       ├── depth.tsv
-    │       └── coverage_summary.tsv
-    ├── SNPGenie/       (optional)
-    ├── Haplotypes/     (optional)
-    │   ├── CliqueSNV/
-    │   └── VILOCA/
-    ├── Reports/
-    │   ├── tables/
-    │   └── Plots/
-    └── pipeline_info/
+├── LoFreq/
+│   └── <sample>/
+│       ├── variants.filtered.vcf.gz
+│       ├── variants.filtered.vcf.gz.tbi
+│       └── qc_stats.txt
+├── Ivar/
+│   └── <sample>/
+│       ├── variants.tsv
+│       └── consensus.fa
+├── Annotated_variants/
+│   ├── LoFreq/
+│   └── Ivar/
+├── Coverage/
+│   └── <sample>/
+│       ├── depth.tsv
+│       └── coverage_summary.tsv
+├── SNPGenie/       (optional)
+├── Haplotypes/     (optional)
+│   ├── CliqueSNV/
+│   └── VILOCA/
+├── Reports/
+│   ├── tables/
+│   └── Plots/
+├── MultiQC/
+└── pipeline_info/
 ```
 
 ---
@@ -194,14 +194,16 @@ bash tests/data/generate_fixtures.sh
 | `Scripts/run_ivar.sh` | `modules/local/ivar/variants`, `modules/local/ivar/consensus` |
 | `Scripts/annotate_all.sh` | `modules/local/bcftools/csq`, `bin/ivar_variants_to_vcf.py` |
 | `Scripts/calculate_coverage.sh` | `modules/local/coverage/depth`, `modules/local/coverage/summarize` |
-| `Scripts/run_snpgenie.sh` | `subworkflow/selection` (`snpgenie/run` + 4 `bin/` scripts) |
+| `Scripts/run_snpgenie.sh` | `subworkflows/local/selection` (`snpgenie/run` + 4 `bin/` scripts) |
 | `Scripts/run_cliquesnv.sh` | `modules/local/cliquesnv` |
 | `Scripts/run_viloca.sh` | `modules/local/viloca` |
 | `Scripts/Helpers/*.py`, `*.R` | Ported to executable `bin/` scripts with strict argparse CLIs |
 
 ---
 
-## Citation & License
+### Contact & Maintainer
+**Alejandro Ponce-Flores**  
+Bioinformatics Analyst / Pipeline Engineer  
+- GitHub: [@aleponce4](https://github.com/aleponce4)
+- License: MIT
 
-- **License**: MIT
-- **Contact**: Antigravity Team
