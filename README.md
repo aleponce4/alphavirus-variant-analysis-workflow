@@ -214,7 +214,6 @@ bash tests/data/generate_fixtures.sh
 
 ### Contact & Maintainer
 **Alejandro Ponce-Flores**  
-Bioinformatics Analyst / Pipeline Engineer  
 - GitHub: [@aleponce4](https://github.com/aleponce4)
 - License: MIT
 
