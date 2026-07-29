@@ -179,7 +179,7 @@ alphavirus-variant-analysis-workflow/
 
 ### 1.3 Legacy directories — final disposition
 
-`envs/`, `Haplotype/`, `SNPGenie/`, `Variant_discovery_pipeline/`, `run_full_pipeline.sh`, `requirements.txt` are **reference-only** during migration. Do **not** delete them until Phase 5, when (after user confirmation) they are moved into `legacy/` or removed in the release commit. The new pipeline must never read from them at runtime.
+Legacy components (`envs/`, `Haplotype/`, `SNPGenie/`, `Variant_discovery_pipeline/`, `run_full_pipeline.sh`, `requirements.txt`) have been archived into the `legacy/` directory following Phase 5 release completion and explicit user confirmation. The Nextflow DSL2 pipeline operates independently with zero dependencies on legacy files.
 
 ---
 
