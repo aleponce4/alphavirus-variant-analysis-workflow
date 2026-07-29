@@ -1,0 +1,41 @@
+nextflow_workflow {
+
+    name "Test Subworkflow ANNOTATION"
+    script "subworkflows/annotation/main.nf"
+    workflow "ANNOTATION"
+
+    test("annotation - test") {
+
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.ivar.tsv", checkIfExists: true)
+                ])
+                input[1] = Channel.of([
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true)
+                ])
+                input[2] = Channel.of([
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: true)
+                ])
+                input[3] = Channel.of([
+                    [ id: 'viral_gff' ],
+                    file("${projectDir}/tests/data/viral_ref.test.gff3", checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.annotated_vcf != null
+        }
+
+    }
+
+}

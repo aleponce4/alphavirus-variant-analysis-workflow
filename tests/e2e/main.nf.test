@@ -1,0 +1,30 @@
+nextflow_pipeline {
+
+    name "Test End-to-End Pipeline"
+    script "main.nf"
+
+    test("e2e - full pipeline test") {
+
+        when {
+            params {
+                input         = "${projectDir}/assets/samplesheet.test.csv"
+                fasta         = "${projectDir}/tests/data/viral_ref.test.fasta"
+                gff           = "${projectDir}/tests/data/viral_ref.test.gff3"
+                outdir        = "results_e2e"
+                run_ivar      = true
+                run_lofreq    = true
+                run_annotation= true
+                run_coverage  = true
+                run_snpgenie  = true
+                run_haplotype = true
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert path("${params.outdir}/mouse_veev/Reports/tables/consolidated_sample_summary.tsv").exists()
+        }
+
+    }
+
+}

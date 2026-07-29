@@ -1,0 +1,28 @@
+nextflow_workflow {
+
+    name "Test Subworkflow COVERAGE_QC"
+    script "subworkflows/coverage_qc/main.nf"
+    workflow "COVERAGE_QC"
+
+    test("coverage_qc - test") {
+
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.bam.bai", checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.coverage_summary != null
+        }
+
+    }
+
+}

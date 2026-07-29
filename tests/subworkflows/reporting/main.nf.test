@@ -1,0 +1,32 @@
+nextflow_workflow {
+
+    name "Test Subworkflow REPORTING"
+    script "subworkflows/reporting/main.nf"
+    workflow "REPORTING"
+
+    test("reporting - test") {
+
+        when {
+            workflow {
+                """
+                input[0] = Channel.of(
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true)
+                )
+                input[1] = Channel.of(
+                    file("${projectDir}/tests/data/sampleA.test.depth.tsv", checkIfExists: true)
+                )
+                input[2] = Channel.of(
+                    file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true)
+                )
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.summary != null
+        }
+
+    }
+
+}

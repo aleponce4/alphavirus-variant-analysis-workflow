@@ -1,0 +1,30 @@
+nextflow_workflow {
+
+    name "Test Subworkflow INPUT_CHECK"
+    script "subworkflows/input_check/main.nf"
+    workflow "INPUT_CHECK"
+
+    test("input_check - test") {
+
+        when {
+            params {
+                fasta = "${projectDir}/tests/data/viral_ref.test.fasta"
+                gff   = "${projectDir}/tests/data/viral_ref.test.gff3"
+            }
+            workflow {
+                """
+                input[0] = file("${projectDir}/assets/samplesheet.test.csv", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.samples != null
+            assert workflow.out.fasta != null
+            assert workflow.out.gff != null
+        }
+
+    }
+
+}

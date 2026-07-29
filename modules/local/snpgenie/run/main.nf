@@ -19,7 +19,13 @@ process SNPGENIE_RUN {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    perl ${projectDir}/assets/snpgenie/snpgenie.pl --vcfformat=2 --snpreport=${vcf} --fastafile=${fasta} --gtffile=${gtf}
+    VCF_INPUT="${vcf}"
+    if [[ "${vcf}" == *.gz ]]; then
+        gunzip -c ${vcf} > ${prefix}.uncompressed.vcf
+        VCF_INPUT="${prefix}.uncompressed.vcf"
+    fi
+
+    perl ${projectDir}/assets/snpgenie/snpgenie.pl --vcfformat=2 --snpreport=\${VCF_INPUT} --fastafile=${fasta} --gtffile=${gtf}
     mv population_summary.txt ${prefix}_population_summary.tsv 2>/dev/null || touch ${prefix}_population_summary.tsv
     mv product_results.txt ${prefix}_product_results.tsv 2>/dev/null || touch ${prefix}_product_results.tsv
 

@@ -1,0 +1,38 @@
+nextflow_workflow {
+
+    name "Test Subworkflow VARIANT_CALLING"
+    script "subworkflows/variant_calling/main.nf"
+    workflow "VARIANT_CALLING"
+
+    test("variant_calling - test") {
+
+        when {
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id: 'sampleA', condition: 'infected', dpi: '3' ],
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.bam.bai", checkIfExists: true)
+                ])
+                input[1] = Channel.of([
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: true)
+                ])
+                input[2] = Channel.of([
+                    [ id: 'viral_gff' ],
+                    file("${projectDir}/tests/data/viral_ref.test.gff3", checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.viral_bams != null
+            assert workflow.out.lofreq_vcf != null
+        }
+
+    }
+
+}
