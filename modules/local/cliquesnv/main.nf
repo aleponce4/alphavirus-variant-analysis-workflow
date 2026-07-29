@@ -18,7 +18,7 @@ process CLIQUESNV {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def avail_mem = task.memory ? "-Xmx${task.memory.toGiga()}g" : "-Xmx8g"
     """
-    cliquesnv ${avail_mem} -m snv-illumina -in ${bam} -outDir . -threads ${task.cpus}
+    cliquesnv ${avail_mem} -m snv-illumina -in ${bam} -outDir . -threads ${task.cpus} -tf ${params.cliquesnv_min_freq}
     mv *.fasta ${prefix}.fasta 2>/dev/null || touch ${prefix}.fasta
 
     cat <<-END_VERSIONS > versions.yml

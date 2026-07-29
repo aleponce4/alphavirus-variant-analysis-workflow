@@ -30,7 +30,8 @@ while (i <= length(args)) {
         manifest_file <- args[i + 1]
         i <- i + 2
     } else {
-        i <- i + 1
+        cat("Error: unknown argument ", args[i], "\n", file = stderr())
+        quit(status = 2)
     }
 }
 

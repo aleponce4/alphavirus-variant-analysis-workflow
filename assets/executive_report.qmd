@@ -74,6 +74,15 @@ var_plot = f"{dataset}_variant_density.png"
 display(HTML(embed_image(var_plot)))
 ```
 
+## Statistical & Methodological Framework
+
+- **Allele Frequency Units:** Machine VCF/TSV outputs record proportions ($0–1$). Displayed frequencies in tables and figures represent percentages ($100 \times \text{proportion}$) with explicit `%` units.
+- **Frequency Tiering & Corroboration Rules:**
+  - **Confirmed Minor Variants ($\ge 1.0\%$):** Reported with high confidence.
+  - **Candidate iSNVs ($0.1\% - 1.0\%$):** Quality-model driven. Requires (1) LoFreq Poisson-binomial significance ($p < 0.01$), (2) strand-balance filter pass, and (3) $\ge 10$ ALT observations (requires coverage depth $\ge 10,000\times$).
+  - **Exploratory Variants ($< 0.1\%$):** At or below single-base Q30 sequencing noise floor ($\epsilon \approx 0.1\%$).
+- **Indel Analysis Scope:** LoFreq runs SNV-focused by default (`lofreq_enable_indelqual = false`); unqualified indels are filtered out by `--indelqual-thresh 20`.
+
 ```{python}
 #| echo: false
 #| results: 'asis'

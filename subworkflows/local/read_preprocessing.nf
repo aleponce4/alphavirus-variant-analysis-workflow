@@ -15,7 +15,7 @@ workflow READ_PREPROCESSING {
 
     FASTQC(ch_fastqs)
     BWA_INDEX(ch_fasta.map { meta, fasta, fai -> [ meta, fasta ] })
-    BWA_MEM(ch_fastqs, BWA_INDEX.out.index)
+    BWA_MEM(ch_fastqs, BWA_INDEX.out.index.first())
     SAMTOOLS_SORT(BWA_MEM.out.sam)
 
     ch_bams = SAMTOOLS_SORT.out.bam

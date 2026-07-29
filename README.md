@@ -93,24 +93,35 @@ sampleB,data/sampleB.bam,data/sampleB.bam.bai,infected,7
 | `--dataset` | `viral_analysis` | Dataset label used in reporting outputs |
 | `--viral_contig` | `null` | Target viral contig name (extracted dynamically if null) |
 | `--publish_dir_mode` | `copy` | Method for publishing output files (`copy`, `symlink`, `link`) |
-| `--ivar_min_depth` | `1000` | Minimum depth for iVar variant calling |
-| `--ivar_min_freq` | `0.01` | Minimum allele frequency for iVar |
+| `--ivar_min_depth` | `10` | Minimum depth threshold to examine positions for iVar variant calling |
+| `--ivar_min_freq` | `0.001` | Minimum allele frequency to report for iVar (proportion 0-1) |
 | `--ivar_min_bq` | `30` | Minimum base quality for iVar |
 | `--ivar_consensus_min_cov` | `10` | Minimum depth for iVar consensus calling |
 | `--ivar_consensus_threshold` | `0.5` | Threshold for iVar consensus calling |
-| `--lofreq_min_depth` | `1000` | Minimum depth for LoFreq variant calling |
-| `--lofreq_min_freq` | `0.01` | Minimum allele frequency for LoFreq |
+| `--lofreq_min_depth` | `10` | Minimum depth threshold for LoFreq variant calling |
 | `--lofreq_min_bq` | `30` | Minimum base quality for LoFreq |
-| `--lofreq_min_mq` | `60` | Minimum mapping quality for LoFreq |
+| `--lofreq_min_mq` | `20` | Minimum mapping quality for LoFreq |
 | `--lofreq_sig` | `0.01` | LoFreq significance threshold |
 | `--lofreq_enable_indelqual` | `false` | Enable LoFreq indel quality assessment |
 | `--lofreq_enable_baq` | `false` | Enable LoFreq base alignment quality (BAQ) |
+| `--viloca_window` | `150` | Window size for VILOCA/ShoRAH quasispecies reconstruction |
+| `--viloca_shift` | `50` | Window shift step for VILOCA/ShoRAH quasispecies reconstruction |
+| `--cliquesnv_min_freq` | `0.001` | Minimum frequency threshold for CliqueSNV |
 | `--run_ivar` | `true` | Enable iVar subworkflow |
 | `--run_lofreq` | `true` | Enable LoFreq subworkflow |
 | `--run_annotation` | `true` | Enable variant functional annotation (`bcftools csq`) |
 | `--run_coverage` | `true` | Enable depth and coverage QC subworkflow |
 | `--run_snpgenie` | `false` | Enable SNPGenie evolutionary selection subworkflow |
 | `--run_haplotype` | `false` | Enable CliqueSNV & VILOCA haplotype reconstruction |
+
+### Methodology & Reporting Standards
+
+- **Frequency Reporting Contract:** All machine-readable files (VCFs, raw TSVs) store allele frequencies strictly as proportions (`0.0` to `1.0`). All human-facing summary tables, reports, and visualization plots convert values to percentages (`100 × proportion`) with explicit `%` unit labels.
+- **Frequency Tiering & Corroboration Policy:**
+  - `≥ 1.0%`: Confirmed minor variant call.
+  - `0.1% – 1.0%`: Candidate iSNV call. Requires (1) LoFreq Poisson-binomial significance, (2) strand balance pass, and (3) ≥10 ALT-supporting reads (typically requiring depth ≥10,000×).
+  - `< 0.1%`: Below Q30 single-base error noise floor; reported as exploratory only.
+- **Indel Scope:** By default, LoFreq runs with `lofreq_enable_indelqual = false`. Unqualified indels are filtered out by `--indelqual-thresh 20`, ensuring the pipeline operates in an iSNV / SNV-focused mode unless indel qualities are explicitly calculated.
 
 ### Execution Profiles
 

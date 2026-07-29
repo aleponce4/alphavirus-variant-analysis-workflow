@@ -22,7 +22,7 @@ workflow ANNOTATION {
         // Convert iVar TSV to VCF
         ch_ivar_vcf = Channel.empty()
         if (params.run_ivar) {
-            IVAR_TSV_TO_VCF(ch_ivar_tsv, ch_fasta)
+            IVAR_TSV_TO_VCF(ch_ivar_tsv, ch_fasta.first())
             ch_ivar_vcf = IVAR_TSV_TO_VCF.out.vcf
                 .map { meta, vcf -> [ meta + [caller: 'ivar'], vcf ] }
             ch_versions = ch_versions.mix(IVAR_TSV_TO_VCF.out.versions)
@@ -37,7 +37,7 @@ workflow ANNOTATION {
 
         ch_vcf_to_annotate = ch_ivar_vcf.mix(ch_lofreq_prep)
 
-        BCFTOOLS_CSQ(ch_vcf_to_annotate, ch_fasta, ch_gff)
+        BCFTOOLS_CSQ(ch_vcf_to_annotate, ch_fasta.first(), ch_gff.first())
         ch_annotated_vcf = BCFTOOLS_CSQ.out.vcf
         ch_versions      = ch_versions.mix(BCFTOOLS_CSQ.out.versions)
     }

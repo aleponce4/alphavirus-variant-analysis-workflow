@@ -2,6 +2,7 @@
 import sys
 import os
 import argparse
+import math
 from datetime import datetime
 
 __version__ = "1.0.0"
@@ -17,6 +18,15 @@ def parse_ivar_tsv(tsv_file):
                 continue
             fields = line.split('\t')
             if len(fields) >= 12:
+                try:
+                    alt_freq = float(fields[10])
+                except (IndexError, ValueError):
+                    alt_freq = 0.0
+                try:
+                    pval = float(fields[12]) if len(fields) > 12 else 1.0
+                except (IndexError, ValueError):
+                    pval = 1.0
+
                 variant = {
                     'CHROM': fields[0],
                     'POS': int(fields[1]),
@@ -24,9 +34,9 @@ def parse_ivar_tsv(tsv_file):
                     'ALT': fields[3],
                     'REF_DP': int(fields[4]) if fields[4].isdigit() else 0,
                     'ALT_DP': int(fields[7]) if fields[7].isdigit() else 0,
-                    'ALT_FREQ': float(fields[10]) if fields[10].replace('.', '', 1).isdigit() else 0.0,
+                    'ALT_FREQ': alt_freq,
                     'TOTAL_DP': int(fields[11]) if fields[11].isdigit() else 0,
-                    'PVAL': float(fields[12]) if len(fields) > 12 and fields[12].replace('.', '', 1).replace('e-', '', 1).replace('E-', '', 1).isdigit() else 1.0,
+                    'PVAL': pval,
                     'PASS': fields[13] if len(fields) > 13 else 'TRUE'
                 }
                 variants.append(variant)
@@ -58,17 +68,19 @@ def convert_to_vcf(variants, output_file, reference_file, sample_name):
             pos = variant['POS']
             ref = variant['REF']
             alt = variant['ALT']
-            qual = 60
+            pval = variant.get('PVAL', 1.0)
+            qual = -10.0 * math.log10(max(pval, 1e-300))
+            qual_str = f"{qual:.2f}"
             filter_field = "PASS" if variant['PASS'] == 'TRUE' else "FAIL"
             total_dp = variant['TOTAL_DP']
             alt_freq = variant['ALT_FREQ']
             info = f"DP={total_dp};AF={alt_freq}"
             format_field = "GT:DP:AD:ALT_FREQ"
-            genotype = "1/1"
+            genotype = "1"
             ref_dp = variant['REF_DP']
             alt_dp = variant['ALT_DP']
             sample_data = f"{genotype}:{total_dp}:{ref_dp},{alt_dp}:{alt_freq}"
-            vcf_line = f"{chrom}\t{pos}\t.\t{ref}\t{alt}\t{qual}\t{filter_field}\t{info}\t{format_field}\t{sample_data}\n"
+            vcf_line = f"{chrom}\t{pos}\t.\t{ref}\t{alt}\t{qual_str}\t{filter_field}\t{info}\t{format_field}\t{sample_data}\n"
             f.write(vcf_line)
 
 def main():

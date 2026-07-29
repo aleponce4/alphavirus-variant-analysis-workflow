@@ -9,12 +9,6 @@ from pathlib import Path
 
 __version__ = "1.0.0"
 
-try:
-    from scipy.stats import kruskal
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Compute delta (piN-piS) and gene-wise Kruskal-Wallis with BH-FDR using manifest DPIs."
@@ -89,6 +83,11 @@ def format_float(value: float) -> str:
 
 def main() -> None:
     args = parse_args()
+    try:
+        from scipy.stats import kruskal
+    except ImportError:
+        print("ERROR: scipy is required for Kruskal-Wallis statistical testing in analyze_delta_selection.py but is not installed.", file=sys.stderr)
+        sys.exit(1)
     in_path = Path(args.input)
     out_dir = Path(args.outdir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -153,7 +152,7 @@ def main() -> None:
         for product, dpi_map in product_map.items():
             dpi_groups = [dpi_map[d] for d in all_dpis if len(dpi_map[d]) > 0]
 
-            if len(dpi_groups) < 2 or not HAS_SCIPY:
+            if len(dpi_groups) < 2:
                 h_stat = float("nan")
                 pval = float("nan")
             else:

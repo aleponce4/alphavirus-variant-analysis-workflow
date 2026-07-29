@@ -222,6 +222,12 @@ def main() -> None:
         {"parameter": "delta_definition", "value": "Delta = piN - piS"},
         {"parameter": "gene_length_codons", "value": "round((N_sites + S_sites) / 3)"},
         {"parameter": "multiple_testing", "value": "Benjamini-Hochberg FDR (column bh_fdr)"},
+        {"parameter": "ivar_min_freq", "value": "0.001"},
+        {"parameter": "lofreq_min_depth", "value": "10"},
+        {"parameter": "lofreq_min_mq", "value": "20"},
+        {"parameter": "viloca_window", "value": "150"},
+        {"parameter": "viloca_shift", "value": "50"},
+        {"parameter": "cliquesnv_min_freq", "value": "0.001"},
     ]
     write_tsv(report_dir / "methods_key_parameters.tsv", methods_rows, ["parameter", "value"])
 

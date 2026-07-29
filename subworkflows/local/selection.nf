@@ -23,10 +23,10 @@ workflow SELECTION {
     if (params.run_snpgenie) {
         ch_treatment_groups.subscribe { log.info "SELECTION treatment group: ${it.treatment} (n=${it.n_replicates})" }
 
-        CONVERT_GFF3_TO_GTF(ch_gff)
+        CONVERT_GFF3_TO_GTF(ch_gff.first())
         ch_versions = ch_versions.mix(CONVERT_GFF3_TO_GTF.out.versions)
 
-        SNPGENIE_RUN(ch_vcf, ch_fasta, CONVERT_GFF3_TO_GTF.out.gtf)
+        SNPGENIE_RUN(ch_vcf, ch_fasta.first(), CONVERT_GFF3_TO_GTF.out.gtf.first())
         ch_versions = ch_versions.mix(SNPGENIE_RUN.out.versions)
 
         ch_snpgenie_files = SNPGENIE_RUN.out.results

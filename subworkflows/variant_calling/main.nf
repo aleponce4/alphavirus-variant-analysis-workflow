@@ -28,11 +28,11 @@ workflow VARIANT_CALLING {
     ch_ivar_tsv       = Channel.empty()
     ch_ivar_consensus = Channel.empty()
     if (params.run_ivar) {
-        IVAR_VARIANTS(ch_viral_bams, ch_fasta, ch_gff)
+        IVAR_VARIANTS(ch_viral_bams, ch_fasta.first(), ch_gff.first())
         ch_ivar_tsv = IVAR_VARIANTS.out.tsv
         ch_versions = ch_versions.mix(IVAR_VARIANTS.out.versions)
 
-        IVAR_CONSENSUS(ch_viral_bams, ch_fasta)
+        IVAR_CONSENSUS(ch_viral_bams, ch_fasta.first())
         ch_ivar_consensus = IVAR_CONSENSUS.out.consensus
         ch_versions       = ch_versions.mix(IVAR_CONSENSUS.out.versions)
     }
@@ -41,7 +41,7 @@ workflow VARIANT_CALLING {
     ch_lofreq_vcf     = Channel.empty()
     ch_lofreq_qc      = Channel.empty()
     if (params.run_lofreq) {
-        LOFREQ_CALL(ch_viral_bams, ch_fasta)
+        LOFREQ_CALL(ch_viral_bams, ch_fasta.first())
         ch_versions = ch_versions.mix(LOFREQ_CALL.out.versions)
 
         LOFREQ_FILTER(LOFREQ_CALL.out.vcf)

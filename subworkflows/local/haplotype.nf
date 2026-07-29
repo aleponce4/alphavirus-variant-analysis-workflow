@@ -20,7 +20,7 @@ workflow HAPLOTYPE {
         CLIQUESNV(ch_viral_bams)
         ch_versions = ch_versions.mix(CLIQUESNV.out.versions)
 
-        VILOCA(ch_viral_bams, ch_fasta)
+        VILOCA(ch_viral_bams, ch_fasta.first())
         ch_versions = ch_versions.mix(VILOCA.out.versions)
 
         ch_haplotypes = CLIQUESNV.out.haplotypes.mix(VILOCA.out.csv)

@@ -18,7 +18,7 @@ process VILOCA {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    shorah shotgun -b ${bam} -f ${fasta}
+    shorah shotgun -b ${bam} -f ${fasta} -w ${params.viloca_window} -s ${params.viloca_shift}
     mv snv/Signals.csv ${prefix}_cooccurring_mutations.csv 2>/dev/null || touch ${prefix}_cooccurring_mutations.csv
 
     cat <<-END_VERSIONS > versions.yml

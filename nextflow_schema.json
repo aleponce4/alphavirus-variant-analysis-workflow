@@ -76,13 +76,13 @@
       "properties": {
         "ivar_min_depth": {
           "type": "integer",
-          "default": 1000,
-          "description": "Minimum depth to call variant in iVar."
+          "default": 10,
+          "description": "Minimum coverage depth threshold to examine positions for iVar variant calling."
         },
         "ivar_min_freq": {
           "type": "number",
-          "default": 0.01,
-          "description": "Minimum frequency threshold for iVar."
+          "default": 0.001,
+          "description": "Minimum allele frequency to report, as a proportion (0–1). Values < 0.005 require median depth ≥ 10,000× to be statistically meaningful."
         },
         "ivar_min_bq": {
           "type": "integer",
@@ -107,13 +107,8 @@
       "properties": {
         "lofreq_min_depth": {
           "type": "integer",
-          "default": 1000,
-          "description": "Minimum coverage depth for LoFreq calling."
-        },
-        "lofreq_min_freq": {
-          "type": "number",
-          "default": 0.01,
-          "description": "Minimum variant allele frequency for LoFreq."
+          "default": 10,
+          "description": "Minimum coverage depth threshold for LoFreq calling."
         },
         "lofreq_min_bq": {
           "type": "integer",
@@ -122,7 +117,7 @@
         },
         "lofreq_min_mq": {
           "type": "integer",
-          "default": 60,
+          "default": 20,
           "description": "Minimum mapping quality for LoFreq."
         },
         "lofreq_sig": {
@@ -139,6 +134,27 @@
           "type": "boolean",
           "default": false,
           "description": "Enable base alignment quality calculation in LoFreq."
+        }
+      }
+    },
+    "haplotype_options": {
+      "title": "Haplotype parameters",
+      "type": "object",
+      "properties": {
+        "viloca_window": {
+          "type": "integer",
+          "default": 150,
+          "description": "Window size for VILOCA/ShoRAH local quasispecies reconstruction."
+        },
+        "viloca_shift": {
+          "type": "integer",
+          "default": 50,
+          "description": "Window shift step size for VILOCA/ShoRAH local quasispecies reconstruction."
+        },
+        "cliquesnv_min_freq": {
+          "type": "number",
+          "default": 0.001,
+          "description": "Minimum allele frequency threshold for CliqueSNV quasispecies reconstruction."
         }
       }
     },
@@ -195,12 +211,14 @@
     "ivar_consensus_min_cov": { "$ref": "#/definitions/ivar_options/properties/ivar_consensus_min_cov" },
     "ivar_consensus_threshold": { "$ref": "#/definitions/ivar_options/properties/ivar_consensus_threshold" },
     "lofreq_min_depth": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_depth" },
-    "lofreq_min_freq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_freq" },
     "lofreq_min_bq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_bq" },
     "lofreq_min_mq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_min_mq" },
     "lofreq_sig": { "$ref": "#/definitions/lofreq_options/properties/lofreq_sig" },
     "lofreq_enable_indelqual": { "$ref": "#/definitions/lofreq_options/properties/lofreq_enable_indelqual" },
     "lofreq_enable_baq": { "$ref": "#/definitions/lofreq_options/properties/lofreq_enable_baq" },
+    "viloca_window": { "$ref": "#/definitions/haplotype_options/properties/viloca_window" },
+    "viloca_shift": { "$ref": "#/definitions/haplotype_options/properties/viloca_shift" },
+    "cliquesnv_min_freq": { "$ref": "#/definitions/haplotype_options/properties/cliquesnv_min_freq" },
     "run_ivar": { "$ref": "#/definitions/workflow_toggles/properties/run_ivar" },
     "run_lofreq": { "$ref": "#/definitions/workflow_toggles/properties/run_lofreq" },
     "run_annotation": { "$ref": "#/definitions/workflow_toggles/properties/run_annotation" },
