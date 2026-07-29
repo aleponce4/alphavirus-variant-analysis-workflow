@@ -1,0 +1,53 @@
+nextflow_process {
+
+    name "Test Process CLIQUESNV"
+    script "modules/local/cliquesnv/main.nf"
+    process "CLIQUESNV"
+
+    test("cliquesnv - stub") {
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.bam.bai", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.haplotypes[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+    test("cliquesnv - real") {
+        tag "slow"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.bam.bai", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.haplotypes[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+}

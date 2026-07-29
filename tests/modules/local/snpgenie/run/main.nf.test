@@ -1,0 +1,67 @@
+nextflow_process {
+
+    name "Test Process SNPGENIE_RUN"
+    script "modules/local/snpgenie/run/main.nf"
+    process "SNPGENIE_RUN"
+
+    test("snpgenie_run - stub") {
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id: 'viral_gtf' ],
+                    file("${projectDir}/tests/data/viral_ref.test.gtf", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+    test("snpgenie_run - real") {
+        tag "slow"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id: 'viral_gtf' ],
+                    file("${projectDir}/tests/data/viral_ref.test.gtf", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+}

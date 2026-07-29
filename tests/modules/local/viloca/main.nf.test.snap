@@ -1,0 +1,26 @@
+{
+    "viloca - stub": {
+        "content": [
+            [
+                "versions.yml:md5,78df7a0b2e92a0e6825d7034615b00d1"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:27:54.097936"
+    },
+    "viloca - real": {
+        "content": [
+            [
+                "versions.yml:md5,78df7a0b2e92a0e6825d7034615b00d1"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:28:01.983519"
+    }
+}

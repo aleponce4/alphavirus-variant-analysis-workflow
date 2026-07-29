@@ -1,0 +1,50 @@
+nextflow_process {
+
+    name "Test Process COVERAGE_SUMMARIZE"
+    script "modules/local/coverage/summarize/main.nf"
+    process "COVERAGE_SUMMARIZE"
+
+    test("coverage_summarize - stub") {
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.depth.tsv", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.summary[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+    test("coverage_summarize - real") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.depth.tsv", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.summary[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+}

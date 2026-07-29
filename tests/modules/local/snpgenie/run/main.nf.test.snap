@@ -1,0 +1,26 @@
+{
+    "snpgenie_run - real": {
+        "content": [
+            [
+                "versions.yml:md5,06e25441990818237a6e024155069114"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:29:18.717779"
+    },
+    "snpgenie_run - stub": {
+        "content": [
+            [
+                "versions.yml:md5,06e25441990818237a6e024155069114"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:29:04.501419"
+    }
+}

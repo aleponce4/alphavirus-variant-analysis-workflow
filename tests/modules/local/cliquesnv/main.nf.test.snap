@@ -1,0 +1,26 @@
+{
+    "cliquesnv - stub": {
+        "content": [
+            [
+                "versions.yml:md5,589d67524e25ade62aed04416f5b7f7a"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:25:51.490419"
+    },
+    "cliquesnv - real": {
+        "content": [
+            [
+                "versions.yml:md5,589d67524e25ade62aed04416f5b7f7a"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:28:58.496671"
+    }
+}

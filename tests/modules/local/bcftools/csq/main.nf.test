@@ -1,0 +1,68 @@
+nextflow_process {
+
+    name "Test Process BCFTOOLS_CSQ"
+    script "modules/local/bcftools/csq/main.nf"
+    process "BCFTOOLS_CSQ"
+
+    test("bcftools_csq - stub") {
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA', caller: 'lofreq' ],
+                    file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id: 'viral_gff' ],
+                    file("${projectDir}/tests/data/viral_ref.test.gff3", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.vcf[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+    test("bcftools_csq - real") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA', caller: 'lofreq' ],
+                    file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: true)
+                ]
+                input[2] = [
+                    [ id: 'viral_gff' ],
+                    file("${projectDir}/tests/data/viral_ref.test.gff3", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.vcf[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+}

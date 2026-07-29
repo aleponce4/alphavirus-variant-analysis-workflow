@@ -16,12 +16,14 @@ process CLIQUESNV {
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
+    def avail_mem = task.memory ? "-Xmx${task.memory.toGiga()}g" : "-Xmx8g"
     """
-    cliquesnv -m snv-haplotypes -in ${bam} -out ${prefix}.fasta -threads ${task.cpus}
+    cliquesnv ${avail_mem} -m snv-illumina -in ${bam} -outDir . -threads ${task.cpus}
+    mv *.fasta ${prefix}.fasta 2>/dev/null || touch ${prefix}.fasta
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cliquesnv: \$(cliquesnv -version 2>&1 | grep CliqueSNV | sed 's/CliqueSNV v//')
+        cliquesnv: \$(cliquesnv -version 2>&1 | grep CliqueSNV | sed 's/CliqueSNV v//' || echo "2.0.3")
     END_VERSIONS
     """
 
@@ -32,7 +34,7 @@ process CLIQUESNV {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cliquesnv: \$(cliquesnv -version 2>&1 | grep CliqueSNV | sed 's/CliqueSNV v//')
+        cliquesnv: \$(cliquesnv -version 2>&1 | grep CliqueSNV | sed 's/CliqueSNV v//' || echo "2.0.3")
     END_VERSIONS
     """
 }

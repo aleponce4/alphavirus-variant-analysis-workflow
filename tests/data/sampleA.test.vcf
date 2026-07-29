@@ -1,0 +1,9 @@
+##fileformat=VCFv4.2
+##fileDate=20260728
+##source=lofreq
+##reference=tests/data/viral_ref.test.fasta
+##contig=<ID=KP282671.1,length=11444>
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Raw Depth">
+##INFO=<ID=AF,Number=1,Type=Float,Description="Allele Frequency">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+KP282671.1	100	.	T	C	60	PASS	DP=1500;AF=0.05

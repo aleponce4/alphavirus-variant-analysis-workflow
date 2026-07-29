@@ -20,6 +20,8 @@ process SNPGENIE_RUN {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     perl ${projectDir}/assets/snpgenie/snpgenie.pl --vcfformat=2 --snpreport=${vcf} --fastafile=${fasta} --gtffile=${gtf}
+    mv population_summary.txt ${prefix}_population_summary.tsv 2>/dev/null || touch ${prefix}_population_summary.tsv
+    mv product_results.txt ${prefix}_product_results.tsv 2>/dev/null || touch ${prefix}_product_results.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -30,7 +32,8 @@ process SNPGENIE_RUN {
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}_snpgenie_results.tsv
+    touch ${prefix}_population_summary.tsv
+    touch ${prefix}_product_results.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

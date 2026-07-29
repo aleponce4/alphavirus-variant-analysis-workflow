@@ -1,0 +1,26 @@
+{
+    "bcftools_csq - real": {
+        "content": [
+            [
+                "versions.yml:md5,020387d0de94edd20447c236d1d8843c"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:28:31.371984"
+    },
+    "bcftools_csq - stub": {
+        "content": [
+            [
+                "versions.yml:md5,020387d0de94edd20447c236d1d8843c"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.5"
+        },
+        "timestamp": "2026-07-28T18:25:13.130058"
+    }
+}

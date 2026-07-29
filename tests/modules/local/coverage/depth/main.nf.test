@@ -1,0 +1,52 @@
+nextflow_process {
+
+    name "Test Process COVERAGE_DEPTH"
+    script "modules/local/coverage/depth/main.nf"
+    process "COVERAGE_DEPTH"
+
+    test("coverage_depth - stub") {
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.bam.bai", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.depth[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+    test("coverage_depth - real") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.bam.bai", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.depth[0][1]).exists()
+            assert snapshot(process.out.versions).match()
+        }
+
+    }
+
+}
