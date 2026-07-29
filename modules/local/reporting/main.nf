@@ -15,7 +15,7 @@ process REPORT_RUN_SUMMARY {
 
     script:
     """
-    generate_run_summary.py --results-dir . --outdir . --dataset ${params.dataset}
+    python3 \$(which generate_run_summary.py || echo ${projectDir}/bin/generate_run_summary.py) --results-dir . --outdir . --dataset ${params.dataset}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -51,7 +51,7 @@ process REPORT_COVERAGE_PLOTS {
 
     script:
     """
-    generate_coverage_plots.py --coverage-dir depth_files --outdir . --dataset ${params.dataset}
+    python3 \$(which generate_coverage_plots.py || echo ${projectDir}/bin/generate_coverage_plots.py) --coverage-dir depth_files --outdir . --dataset ${params.dataset}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -87,7 +87,7 @@ process REPORT_VARIANT_PLOTS {
 
     script:
     """
-    generate_variant_plots.py --vcf-dir vcf_files --outdir . --dataset ${params.dataset}
+    python3 \$(which generate_variant_plots.py || echo ${projectDir}/bin/generate_variant_plots.py) --vcf-dir vcf_files --outdir . --dataset ${params.dataset}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

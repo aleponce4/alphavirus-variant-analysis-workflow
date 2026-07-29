@@ -18,7 +18,7 @@ process IVAR_TSV_TO_VCF {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    ivar_variants_to_vcf.py --input-tsv ${tsv} --output-vcf ${prefix}.ivar.vcf --reference-fasta ${fasta}
+    python3 \$(which ivar_variants_to_vcf.py || echo ${projectDir}/bin/ivar_variants_to_vcf.py) --input-tsv ${tsv} --output-vcf ${prefix}.ivar.vcf --reference-fasta ${fasta}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

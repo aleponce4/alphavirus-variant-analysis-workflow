@@ -16,7 +16,7 @@ process SNPGENIE_SUMMARIZE {
 
     script:
     """
-    summarize_snpgenie.py --input-dir inputs --output-dir merged
+    python3 \$(which summarize_snpgenie.py || echo ${projectDir}/bin/summarize_snpgenie.py) --input-dir inputs --output-dir merged
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -56,7 +56,7 @@ process SELECTION_DELTA {
 
     script:
     """
-    analyze_delta_selection.py --input ${product_summary} --manifest ${manifest} --outdir .
+    python3 \$(which analyze_delta_selection.py || echo ${projectDir}/bin/analyze_delta_selection.py) --input ${product_summary} --manifest ${manifest} --outdir .
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -95,7 +95,7 @@ process SELECTION_LIMMA {
 
     script:
     """
-    analyze_delta_limma.R --input-dir . --output-dir . --manifest ${manifest}
+    Rscript \$(which analyze_delta_limma.R || echo ${projectDir}/bin/analyze_delta_limma.R) --input-dir . --output-dir . --manifest ${manifest}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -139,7 +139,7 @@ process SELECTION_BUILD_TABLES {
 
     script:
     """
-    build_selection_tables.py --base . --product-summary ${product_summary} --manifest ${manifest} --report-dir .
+    python3 \$(which build_selection_tables.py || echo ${projectDir}/bin/build_selection_tables.py) --base . --product-summary ${product_summary} --manifest ${manifest} --report-dir .
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

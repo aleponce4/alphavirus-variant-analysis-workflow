@@ -17,7 +17,7 @@ process COVERAGE_SUMMARIZE {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    summarize_coverage.py --depth-file ${depth} --sample-id ${meta.id} --output-tsv ${prefix}.coverage_summary.tsv
+    python3 \$(which summarize_coverage.py || echo ${projectDir}/bin/summarize_coverage.py) --depth-file ${depth} --sample-id ${meta.id} --output-tsv ${prefix}.coverage_summary.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
