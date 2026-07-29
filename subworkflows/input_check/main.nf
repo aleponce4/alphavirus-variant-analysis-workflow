@@ -4,7 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { SAMTOOLS_FAIDX } from '../../modules/local/samtools/faidx/main'
+include { samplesheetToList } from 'plugin/nf-schema'
+include { SAMTOOLS_FAIDX    } from '../../modules/local/samtools/faidx/main'
 
 workflow INPUT_CHECK {
     take:
@@ -16,6 +17,12 @@ workflow INPUT_CHECK {
     }
     if (!params.gff) {
         error "Parameter 'params.gff' must be specified."
+    }
+    if (params.protocol == 'amplicon' && !params.primer_bed) {
+        error "Parameter --primer_bed is required when --protocol amplicon."
+    }
+    if (params.protocol == 'metagenomic' && params.primer_bed) {
+        log.warn "--primer_bed supplied but --protocol is 'metagenomic'; primer trimming is OFF."
     }
 
     def gff_file = file(params.gff, checkIfExists: true)
@@ -29,22 +36,20 @@ workflow INPUT_CHECK {
         error "Provided GFF file ${params.gff} does not contain CDS features required for annotation and selection analysis."
     }
 
+    def root_dir = workflow.projectDir.toString().split('/.nf-test')[0].split('\\.nf-test')[0]
+
     ch_samplesheet = Channel
-        .fromPath(samplesheet, checkIfExists: true)
-        .splitCsv(header: true, strip: true)
+        .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
         .map { row ->
             def meta = [:]
-            meta.id        = row.sample
-            meta.condition = row.condition ?: 'infected'
-            meta.dpi       = row.dpi ?: '0'
-
-            def bam_path = row.bam.startsWith('/') ? row.bam : "${workflow.projectDir}/${row.bam}"
-            def bai_path = row.bai.startsWith('/') ? row.bai : "${workflow.projectDir}/${row.bai}"
-
-            def bam = file(bam_path, checkIfExists: true)
-            def bai = file(bai_path, checkIfExists: true)
-
-            return [ meta, bam, bai ]
+            meta.id        = row[0]
+            meta.treatment = row[3]
+            meta.condition = row[3]
+            def f1 = row[1].toString()
+            def f2 = row[2].toString()
+            def file1 = f1.startsWith('/') ? file(f1, checkIfExists: true) : (file(f1).exists() ? file(f1) : file("${root_dir}/${f1}", checkIfExists: true))
+            def file2 = f2.startsWith('/') ? file(f2, checkIfExists: true) : (file(f2).exists() ? file(f2) : file("${root_dir}/${f2}", checkIfExists: true))
+            return [ meta, file1, file2 ]
         }
 
     ch_raw_fasta = Channel
@@ -59,7 +64,8 @@ workflow INPUT_CHECK {
         .map { gff -> [ [id: 'annotation'], gff ] }
 
     emit:
-    samples = ch_samplesheet // channel: [ val(meta), path(bam), path(bai) ]
-    fasta   = ch_indexed_fasta// channel: [ val(meta), path(fasta), path(fai) ]
-    gff     = ch_gff         // channel: [ val(meta), path(gff) ]
+    fastqs   = ch_samplesheet // channel: [ val(meta), path(fastq_1), path(fastq_2) ]
+    fasta    = ch_indexed_fasta// channel: [ val(meta), path(fasta), path(fai) ]
+    gff      = ch_gff         // channel: [ val(meta), path(gff) ]
+    versions = SAMTOOLS_FAIDX.out.versions
 }

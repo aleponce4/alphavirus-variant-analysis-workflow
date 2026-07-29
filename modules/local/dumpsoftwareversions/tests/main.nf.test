@@ -1,0 +1,23 @@
+nextflow_process {
+    name "Test Process DUMP_SOFTWARE_VERSIONS"
+    script "modules/local/dumpsoftwareversions/main.nf"
+    process "DUMP_SOFTWARE_VERSIONS"
+
+    test("Should merge software versions") {
+        when {
+            process {
+                """
+                input[0] = Channel.of(
+                    file("${projectDir}/work", checkIfExists: false)
+                )
+                """
+            }
+        }
+        then {
+            assert process.success
+            assert process.out.yml != null
+            assert process.out.mqc_yml != null
+            assert process.out.versions != null
+        }
+    }
+}

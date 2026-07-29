@@ -42,9 +42,9 @@ def load_manifest(manifest_path: Path) -> dict[str, str]:
         reader = csv.DictReader(f, delimiter=delim)
         for row in reader:
             sample_id = row.get("sample") or row.get("bam_name")
-            dpi = row.get("dpi")
-            if sample_id and dpi:
-                mapping[sample_id] = f"dpi{dpi}" if not str(dpi).startswith("dpi") else str(dpi)
+            dpi = row.get("dpi") or row.get("treatment") or row.get("condition") or "group"
+            if sample_id:
+                mapping[sample_id] = f"dpi{dpi}" if str(dpi).isdigit() else str(dpi)
     return mapping
 
 def safe_float(value: str) -> float:

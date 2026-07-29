@@ -1,8 +1,14 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/aleponce4/alphavirus-variant-analysis-workflow/main/nextflow_schema.json",
   "title": "alphavirus-variant-analysis pipeline parameters",
   "type": "object",
+  "allOf": [
+    {
+      "if": { "properties": { "protocol": { "const": "amplicon" } } },
+      "then": { "required": ["primer_bed"] }
+    }
+  ],
   "definitions": {
     "input_output_options": {
       "title": "Input/output options",
@@ -11,7 +17,8 @@
         "input": {
           "type": "string",
           "format": "file-path",
-          "description": "Path to comma-separated file containing information about the samples."
+          "schema": "assets/schema_input.json",
+          "description": "Path to comma-separated samplesheet with columns sample,fastq_1,fastq_2,treatment."
         },
         "fasta": {
           "type": "string",
@@ -45,6 +52,23 @@
         }
       },
       "required": ["input", "fasta", "gff"]
+    },
+    "protocol_options": {
+      "title": "Protocol options",
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "default": "metagenomic",
+          "enum": ["metagenomic", "amplicon"],
+          "description": "Sequencing protocol. 'amplicon' enables iVar primer trimming."
+        },
+        "primer_bed": {
+          "type": "string",
+          "format": "file-path",
+          "description": "Primer BED file. Required when --protocol amplicon."
+        }
+      }
     },
     "ivar_options": {
       "title": "iVar parameters",
@@ -163,6 +187,8 @@
     "dataset": { "$ref": "#/definitions/input_output_options/properties/dataset" },
     "publish_dir_mode": { "$ref": "#/definitions/input_output_options/properties/publish_dir_mode" },
     "viral_contig": { "$ref": "#/definitions/input_output_options/properties/viral_contig" },
+    "protocol": { "$ref": "#/definitions/protocol_options/properties/protocol" },
+    "primer_bed": { "$ref": "#/definitions/protocol_options/properties/primer_bed" },
     "ivar_min_depth": { "$ref": "#/definitions/ivar_options/properties/ivar_min_depth" },
     "ivar_min_freq": { "$ref": "#/definitions/ivar_options/properties/ivar_min_freq" },
     "ivar_min_bq": { "$ref": "#/definitions/ivar_options/properties/ivar_min_bq" },

@@ -1,0 +1,34 @@
+nextflow_workflow {
+    name "Test Subworkflow READ_PREPROCESSING"
+    script "subworkflows/local/read_preprocessing.nf"
+    workflow "READ_PREPROCESSING"
+
+    test("read_preprocessing - test") {
+        when {
+            params {
+                protocol = "metagenomic"
+            }
+            workflow {
+                """
+                input[0] = Channel.of([
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test_1.fastq.gz", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test_2.fastq.gz", checkIfExists: true)
+                ])
+                input[1] = Channel.of([
+                    [ id: 'reference' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: false)
+                ])
+                """
+            }
+        }
+        then {
+            assert workflow.success
+            assert workflow.out.bams != null
+            assert workflow.out.fastqc_zip != null
+            assert workflow.out.bwa_log != null
+            assert workflow.out.stats != null
+        }
+    }
+}

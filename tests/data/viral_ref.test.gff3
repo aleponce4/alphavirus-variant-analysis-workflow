@@ -1,5 +1,6 @@
 ##gff-version 3
-KP282671.1	GenBank	gene	1	999	.	+	.	ID=gene-nsP1;Name=nsP1;gene_id=nsP1
-KP282671.1	GenBank	mRNA	1	999	.	+	.	ID=transcript-nsP1;Parent=gene-nsP1;Name=nsP1;gene_id=nsP1
-KP282671.1	GenBank	exon	1	999	.	+	.	ID=exon-nsP1;Parent=transcript-nsP1;gene_id=nsP1
-KP282671.1	GenBank	CDS	1	999	.	+	0	ID=cds-nsP1;Parent=transcript-nsP1;Name=nsP1;protein_id=nsP1;gene_id=nsP1
+##sequence-region KP282671.1 1 11444
+KP282671.1	RefSeq	region	1	11444	.	+	.	ID=region0;Name=KP282671.1
+KP282671.1	RefSeq	gene	50	7549	.	+	.	ID=gene0;Name=nonstructural_polyprotein;biotype=protein_coding
+KP282671.1	RefSeq	mRNA	50	7549	.	+	.	ID=rna0;Parent=gene0;Name=nonstructural_polyprotein;biotype=protein_coding
+KP282671.1	RefSeq	CDS	50	7549	.	+	0	ID=cds0;Parent=rna0;Name=nsP1-4;protein_id=YP_009118625.1

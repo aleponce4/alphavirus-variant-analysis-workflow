@@ -1,0 +1,24 @@
+nextflow_process {
+    name "Test Process MULTIQC"
+    script "modules/local/multiqc/main.nf"
+    process "MULTIQC"
+
+    test("Should run MultiQC") {
+        when {
+            process {
+                """
+                input[0] = Channel.of(
+                    file("${projectDir}/tests/data/README.md", checkIfExists: true)
+                )
+                input[1] = file("${projectDir}/assets/multiqc_config.yml", checkIfExists: true)
+                """
+            }
+        }
+        then {
+            assert process.success
+            assert process.out.report != null
+            assert process.out.data != null
+            assert process.out.versions != null
+        }
+    }
+}

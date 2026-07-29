@@ -8,6 +8,7 @@ nextflow_workflow {
 
         when {
             params {
+                input = "${projectDir}/assets/samplesheet.test.csv"
                 fasta = "${projectDir}/tests/data/viral_ref.test.fasta"
                 gff   = "${projectDir}/tests/data/viral_ref.test.gff3"
             }
@@ -20,7 +21,7 @@ nextflow_workflow {
 
         then {
             assert workflow.success
-            assert workflow.out.samples != null
+            assert workflow.out.fastqs != null
             assert workflow.out.fasta != null
             assert workflow.out.gff != null
         }

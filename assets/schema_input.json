@@ -1,0 +1,18 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/aleponce4/alphavirus-variant-analysis-workflow/main/assets/schema_input.json",
+    "title": "alphavirus-variant-analysis samplesheet schema",
+    "description": "Schema for the file provided with --input",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "sample":    { "type": "string", "pattern": "^\\S+$", "errorMessage": "Sample name must be provided and cannot contain spaces" },
+            "fastq_1":   { "type": "string", "pattern": "^\\S+\\.f(ast)?q(\\.gz)?$", "errorMessage": "Reads 1 FastQ must exist and end in .fq/.fastq (optionally .gz)" },
+            "fastq_2":   { "type": "string", "pattern": "^\\S+\\.f(ast)?q(\\.gz)?$", "errorMessage": "Reads 2 FastQ must exist and end in .fq/.fastq (optionally .gz)" },
+            "treatment": { "type": "string", "pattern": "^\\S+$", "errorMessage": "Treatment group must be provided and cannot contain spaces" }
+        },
+        "required": ["sample", "fastq_1", "fastq_2", "treatment"]
+    },
+    "uniqueEntries": ["sample"]
+}

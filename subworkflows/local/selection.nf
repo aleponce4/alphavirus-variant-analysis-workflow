@@ -10,16 +10,19 @@ include { SNPGENIE_SUMMARIZE; SELECTION_DELTA; SELECTION_LIMMA; SELECTION_BUILD_
 
 workflow SELECTION {
     take:
-    ch_vcf        // channel: [ val(meta), path(vcf) ]
-    ch_fasta      // channel: [ val(meta), path(fasta), path(fai) ]
-    ch_gff        // channel: [ val(meta), path(gff) ]
-    ch_samplesheet// path: samplesheet.csv
+    ch_vcf             // channel: [ val(meta), path(vcf) ]
+    ch_fasta           // channel: [ val(meta), path(fasta), path(fai) ]
+    ch_gff             // channel: [ val(meta), path(gff) ]
+    ch_samplesheet     // path: samplesheet.csv
+    ch_treatment_groups// channel: [ treatment: treatment, n_replicates: size ]
 
     main:
     ch_versions = Channel.empty()
     ch_selection_tables = Channel.empty()
 
     if (params.run_snpgenie) {
+        ch_treatment_groups.subscribe { log.info "SELECTION treatment group: ${it.treatment} (n=${it.n_replicates})" }
+
         CONVERT_GFF3_TO_GTF(ch_gff)
         ch_versions = ch_versions.mix(CONVERT_GFF3_TO_GTF.out.versions)
 

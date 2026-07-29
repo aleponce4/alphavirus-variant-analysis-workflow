@@ -5,22 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-07-29
+
+### Added
+- **Executive HTML Reporting**: Added self-contained HTML executive summary report module (`EXECUTIVE_REPORT`) rendering key metrics, depth profiles, variant density, selection statistics, and software provenance in a single report artifact.
+- **Public & Hermetic Test Datasets**: Standardized `-profile test` for zero-friction demo execution, while retaining offline hermetic `nf-test` suite.
+
+## [1.1.0] - 2026-07-29
+
+### Added
+- **Production Hardening & Schema Validation**: Integrated `plugin/nf-schema@2.1.1` for JSON Schema Draft 2020-12 input validation and fast parameter checking.
+- **FASTQ Ingress & Read Preprocessing**: Added `READ_PREPROCESSING` subworkflow (`FASTQC`, `BWA_INDEX`, `BWA_MEM`, `SAMTOOLS_STATS`, `IVAR_TRIM`) for raw FASTQ input handling.
+- **Subworkflow Architecture & Modularization**: Relocated `selection` and `haplotype` subworkflows to `subworkflows/local/` and wired explicit treatment group channels.
+- **Software Provenance & MultiQC**: Added `DUMP_SOFTWARE_VERSIONS` module and `MULTIQC` terminal dashboard process.
+
 ## [1.0.0] - 2026-07-29
 
 ### Added
-- Initial v1.0.0 release of the `alphavirus-variant-analysis` Nextflow DSL2 workflow.
-- **Scaffolding & Infrastructure**: Built complete directory layout, `nextflow.config`, parameter defaults, container pins in `conf/containers.config`, base process rules, and GitHub Actions CI workflow.
-- **Core Variant Calling Modules**:
-  - `SAMTOOLS_FAIDX`: Reference FASTA indexing.
-  - `EXTRACT_VIRAL_BAM`: Contig extraction and BAM sorting/indexing.
-  - `IVAR_VARIANTS` & `IVAR_CONSENSUS`: iVar variant calling and consensus generation.
-  - `LOFREQ_CALL` & `LOFREQ_FILTER`: LoFreq variant calling, filtering, and QC statistics computation.
-- **Downstream Analytics Modules**:
-  - `BCFTOOLS_CSQ`: In-silico variant consequence annotation.
-  - `COVERAGE_DEPTH` & `COVERAGE_SUMMARIZE`: Per-base depth extraction and windowed coverage summarization.
-  - `SNPGENIE_RUN`: Vendored Perl-based SNPGenie evolutionary selection analysis with pinned commit validation (`71584c6c9a30b2c159844f210d70eb89df0f4e19`).
-  - `CLIQUESNV` & `VILOCA`: Haplotype reconstruction subworkflows.
-  - `REPORTING`: Consolidated multi-sample execution summary, sliding-window variant frequency plots, coverage profiles, haplotype visualizations, and multi-tab Excel workbook generation.
-- **CLI Utilities (`bin/`)**: 15 standalone, containerized Python and R CLI scripts equipped with strict flag handling (`--help`, `--version`, exit 2 on invalid flags).
-- **Testing & Verification**: Built end-to-end `nf-test` suite covering module unit tests, subworkflow assembly, and full pipeline integration tests on synthetic VEEV fixtures.
-- **Execution Profiles**: Configured self-contained runtime profiles for `test` (Docker), `slurm` (SLURM + Singularity), and `awsbatch` (AWS Batch + Docker).
+- Initial release of the `alphavirus-variant-analysis` Nextflow DSL2 workflow.

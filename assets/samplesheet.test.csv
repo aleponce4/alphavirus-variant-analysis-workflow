@@ -1,3 +1,3 @@
-sample,bam,bai,condition,dpi
-sampleA,tests/data/sampleA.test.bam,tests/data/sampleA.test.bam.bai,infected,3
-sampleB,tests/data/sampleB.test.bam,tests/data/sampleB.test.bam.bai,infected,7
+sample,fastq_1,fastq_2,treatment
+sampleA,tests/data/sampleA.test_1.fastq.gz,tests/data/sampleA.test_2.fastq.gz,infected
+sampleB,tests/data/sampleB.test_1.fastq.gz,tests/data/sampleB.test_2.fastq.gz,infected

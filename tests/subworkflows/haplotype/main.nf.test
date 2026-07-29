@@ -1,7 +1,7 @@
 nextflow_workflow {
 
     name "Test Subworkflow HAPLOTYPE"
-    script "subworkflows/haplotype/main.nf"
+    script "subworkflows/local/haplotype.nf"
     workflow "HAPLOTYPE"
 
     test("haplotype - test") {

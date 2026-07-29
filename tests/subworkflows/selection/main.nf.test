@@ -1,7 +1,7 @@
 nextflow_workflow {
 
     name "Test Subworkflow SELECTION"
-    script "subworkflows/selection/main.nf"
+    script "subworkflows/local/selection.nf"
     workflow "SELECTION"
 
     test("selection - test") {
@@ -23,6 +23,7 @@ nextflow_workflow {
                     file("${projectDir}/tests/data/viral_ref.test.gff3", checkIfExists: true)
                 ])
                 input[3] = file("${projectDir}/assets/samplesheet.test.csv", checkIfExists: true)
+                input[4] = Channel.of([ treatment: 'infected', n_replicates: 2 ])
                 """
             }
         }

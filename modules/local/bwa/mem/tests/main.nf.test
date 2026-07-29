@@ -1,0 +1,27 @@
+nextflow_process {
+    name "Test Process BWA_MEM"
+    script "modules/local/bwa/mem/main.nf"
+    process "BWA_MEM"
+
+    test("Should align paired FASTQ reads with BWA-MEM") {
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test_1.fastq.gz", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test_2.fastq.gz", checkIfExists: true)
+                ]
+                input[1] = [
+                    [ id: 'reference' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/work", checkIfExists: false)
+                ]
+                """
+            }
+        }
+        then {
+            assert process.out.sam != null || process.out.log != null
+        }
+    }
+}

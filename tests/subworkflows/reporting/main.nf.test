@@ -18,6 +18,11 @@ nextflow_workflow {
                 input[2] = Channel.of(
                     file("${projectDir}/tests/data/sampleA.test.vcf", checkIfExists: true)
                 )
+                input[3] = Channel.empty()
+                input[4] = Channel.empty()
+                input[5] = Channel.of(
+                    file("${projectDir}/tests/data/versions.yml", checkIfExists: true)
+                )
                 """
             }
         }

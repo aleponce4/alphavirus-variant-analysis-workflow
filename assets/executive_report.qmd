@@ -1,0 +1,123 @@
+---
+title: "Executive Variant & Selection Report"
+subtitle: "Alphavirus Variant Analysis Workflow Summary"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    theme: cosmo
+params:
+  dataset: "mouse_veev"
+  has_selection: false
+  has_haplotype: false
+---
+
+```{python}
+#| echo: false
+#| message: false
+#| warning: false
+
+import os, glob, base64
+import pandas as pd
+from IPython.display import HTML, display
+
+dataset = params.get("dataset", "mouse_veev")
+has_selection = str(params.get("has_selection", "false")).lower() == "true"
+has_haplotype = str(params.get("has_haplotype", "false")).lower() == "true"
+
+def embed_image(path):
+    if os.path.exists(path):
+        with open(path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        return f'<img src="data:image/png;base64,{encoded_string}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:6px; margin: 15px 0;"/>'
+    return "<p><em>Plot unavailable</em></p>"
+```
+
+# Executive Summary
+
+This executive report summarizes viral variant discovery, depth coverage, selection analysis, and haplotype reconstruction performed by the **Alphavirus Variant Analysis Pipeline**.
+
+```{python}
+#| echo: false
+#| results: 'asis'
+
+summary_file = "consolidated_sample_summary.tsv"
+if os.path.exists(summary_file):
+    df = pd.read_csv(summary_file, sep="\t")
+    html_table = df.to_html(classes="table table-striped table-hover", index=False)
+    display(HTML(html_table))
+else:
+    display(HTML("<p>No sample summary data found.</p>"))
+```
+
+# Coverage & Depth Quality Control
+
+Sequencing depth and genome coverage across target contig regions.
+
+```{python}
+#| echo: false
+#| results: 'asis'
+
+cov_plot = f"{dataset}_coverage_summary.png"
+display(HTML(embed_image(cov_plot)))
+```
+
+# Variant Discovery
+
+Identified intrahost single nucleotide variants (iSNVs) and low-frequency viral sub-lineages.
+
+```{python}
+#| echo: false
+#| results: 'asis'
+
+var_plot = f"{dataset}_variant_density.png"
+display(HTML(embed_image(var_plot)))
+```
+
+```{python}
+#| echo: false
+#| results: 'asis'
+
+if has_selection:
+    display(HTML("<h1>Natural Selection Analysis (SNPGenie)</h1>"))
+    display(HTML("<p>Nucleotide diversity (π), non-synonymous diversity (πN), and synonymous diversity (πS) across viral CDS features.</p>"))
+    sel_table = "selection_gene_key_table.tsv"
+    if os.path.exists(sel_table):
+        df_sel = pd.read_csv(sel_table, sep="\t")
+        display(HTML(df_sel.to_html(classes="table table-striped table-hover", index=False)))
+    else:
+        display(HTML("<p>Selection key summary table pending.</p>"))
+```
+
+```{python}
+#| echo: false
+#| results: 'asis'
+
+if has_haplotype:
+    display(HTML("<h1>Haplotype Reconstruction</h1>"))
+    display(HTML("<p>Reconstructed viral haplotypes using CliqueSNV and VILOCA quasispecies tools.</p>"))
+    hap_plot = f"{dataset}_haplotype_frequencies.png"
+    display(HTML(embed_image(hap_plot)))
+```
+
+# Software Provenance
+
+Collated software versions utilized during this workflow run.
+
+```{python}
+#| echo: false
+#| results: 'asis'
+
+ver_file = "software_versions.yml"
+if os.path.exists(ver_file):
+    import yaml
+    with open(ver_file, 'r') as f:
+        ver_data = yaml.safe_load(f) or {}
+    rows = ""
+    for proc, tools in sorted(ver_data.items()):
+        if isinstance(tools, dict):
+            for tool, ver in sorted(tools.items()):
+                rows += f"<tr><td>{proc}</td><td>{tool}</td><td>{ver}</td></tr>"
+    html_ver = f'<table class="table table-sm"><thead><tr><th>Process</th><th>Tool</th><th>Version</th></tr></thead><tbody>{rows}</tbody></table>'
+    display(HTML(html_ver))
+```

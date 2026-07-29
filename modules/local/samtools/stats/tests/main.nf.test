@@ -1,0 +1,24 @@
+nextflow_process {
+    name "Test Process SAMTOOLS_STATS"
+    script "modules/local/samtools/stats/main.nf"
+    process "SAMTOOLS_STATS"
+
+    test("Should calculate SAMTOOLS_STATS on BAM") {
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'sampleA' ],
+                    file("${projectDir}/tests/data/sampleA.test.bam", checkIfExists: true),
+                    file("${projectDir}/tests/data/sampleA.test.bam.bai", checkIfExists: true)
+                ]
+                """
+            }
+        }
+        then {
+            assert process.success
+            assert process.out.stats != null
+            assert process.out.versions != null
+        }
+    }
+}

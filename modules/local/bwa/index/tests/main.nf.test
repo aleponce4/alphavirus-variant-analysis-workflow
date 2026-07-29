@@ -1,0 +1,23 @@
+nextflow_process {
+    name "Test Process BWA_INDEX"
+    script "modules/local/bwa/index/main.nf"
+    process "BWA_INDEX"
+
+    test("Should build BWA index") {
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id: 'reference' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+        then {
+            assert process.success
+            assert process.out.index != null
+            assert process.out.versions != null
+        }
+    }
+}
