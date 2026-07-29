@@ -1,6 +1,6 @@
-# alphavirus-variant-analysis-workflow
+# viral-intrahost-variant-workflow
 
-![CI](https://github.com/aleponce4/alphavirus-variant-analysis-workflow/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/aleponce4/viral-intrahost-variant-workflow/actions/workflows/ci.yml/badge.svg)
 ![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A524.04.0-brightgreen)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 

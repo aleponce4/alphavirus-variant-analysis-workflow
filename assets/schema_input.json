@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/aleponce4/alphavirus-variant-analysis-workflow/main/assets/schema_input.json",
-    "title": "alphavirus-variant-analysis-workflow samplesheet schema",
+    "$id": "https://raw.githubusercontent.com/aleponce4/viral-intrahost-variant-workflow/main/assets/schema_input.json",
+    "title": "viral-intrahost-variant-workflow samplesheet schema",
     "description": "Schema for the file provided with --input",
     "type": "array",
     "items": {
