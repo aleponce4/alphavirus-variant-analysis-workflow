@@ -4,7 +4,7 @@
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A524.04.0-brightgreen.svg)](https://www.nextflow.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A production-ready Nextflow DSL2 pipeline for intra-host viral variant discovery, functional annotation, selection analysis, and haplotype reconstruction in alphavirus RNA-seq datasets (e.g., VEEV, EEEV).
+An automated Nextflow DSL2 workflow for intra-host viral variant discovery, functional annotation, evolutionary selection analysis, and haplotype reconstruction in alphavirus RNA-seq datasets (e.g., VEEV, EEEV). Originally developed for routine lab analysis and modernized to provide containerized, reproducible execution across datasets.
 
 ---
 
@@ -12,22 +12,60 @@ A production-ready Nextflow DSL2 pipeline for intra-host viral variant discovery
 
 ```mermaid
 flowchart TD
-    A[samplesheet.csv] --> B[INPUT_CHECK]
-    B --> C[EXTRACT_VIRAL_BAM]
-    C --> D[IVAR_VARIANTS]
-    C --> E[IVAR_CONSENSUS]
-    C --> F[LOFREQ_CALL]
-    F --> G[LOFREQ_FILTER]
-    C --> H[COVERAGE_DEPTH] --> I[COVERAGE_SUMMARIZE]
-    
-    D --> J[ivar_variants_to_vcf.py] --> K[BCFTOOLS_CSQ]
+    classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
+    classDef prep fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c;
+    classDef calling fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20;
+    classDef coverage fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#004d40;
+    classDef selection fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100;
+    classDef haplotype fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#880e4f;
+    classDef report fill:#e0f2f1,stroke:#00796b,stroke-width:2px,color:#004d40;
+
+    subgraph Inputs ["📁 Input Data"]
+        A["samplesheet.csv"]:::input
+        REF["viral_ref.fasta / gff3"]:::input
+    end
+
+    subgraph Preprocessing ["⚙️ Preprocessing & Validation"]
+        B["INPUT_CHECK"]:::prep
+        C["EXTRACT_VIRAL_BAM"]:::prep
+    end
+
+    subgraph Calling ["🧬 Variant Calling & Annotation"]
+        D["IVAR_VARIANTS"]:::calling
+        E["IVAR_CONSENSUS"]:::calling
+        F["LOFREQ_CALL"]:::calling
+        G["LOFREQ_FILTER"]:::calling
+        J["ivar_variants_to_vcf.py"]:::calling
+        K["BCFTOOLS_CSQ"]:::calling
+    end
+
+    subgraph Coverage ["📊 Depth & Coverage QC"]
+        H["COVERAGE_DEPTH"]:::coverage
+        I["COVERAGE_SUMMARIZE"]:::coverage
+    end
+
+    subgraph Selection ["🧪 Evolutionary Selection (Optional)"]
+        L["SNPGenie (Perl)"]:::selection
+        M["Selection Analytics (R/Limma)"]:::selection
+    end
+
+    subgraph Haplotypes ["🧬 Haplotype Reconstruction (Optional)"]
+        N["CLIQUESNV"]:::haplotype
+        O["VILOCA"]:::haplotype
+    end
+
+    subgraph Summary ["📈 Consolidated Output"]
+        P["REPORTING (Run summary, plots & Excel)"]:::report
+    end
+
+    A & REF --> B --> C
+    C --> D & E & F & H & N & O
+    F --> G
+    D --> J --> K
     G --> K
-    
-    G --> L[SNPGenie] --> M[Selection Downstream Analytics]
-    C --> N[CLIQUESNV]
-    C --> O[VILOCA]
-    
-    K & I & M & N & O --> P[REPORTING]
+    H --> I
+    G --> L --> M
+    K & I & M & N & O --> P
 ```
 
 ---
