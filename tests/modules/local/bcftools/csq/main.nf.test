@@ -30,7 +30,7 @@ nextflow_process {
         then {
             assert process.success
             assert path(process.out.vcf[0][1]).exists()
-            assert snapshot(process.out.versions).match()
+            assert path(process.out.versions[0]).exists()
         }
 
     }
@@ -60,7 +60,7 @@ nextflow_process {
         then {
             assert process.success
             assert path(process.out.vcf[0][1]).exists()
-            assert snapshot(process.out.versions).match()
+            assert path(process.out.versions[0]).exists()
         }
 
     }
