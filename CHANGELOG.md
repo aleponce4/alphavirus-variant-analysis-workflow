@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Reporting Container & Hard-Fail Statistical Guard (RA-7)**: Updated `container_python_reporting` to a multi-package data science biocontainer with pandas and scipy, and updated `analyze_delta_selection.py` to hard-fail (`exit 1`) if scipy is unavailable.
   - **iVar VCF Output Integrity (RA-8)**: Corrected fabricated fields in `ivar_variants_to_vcf.py` by emitting haploid GT (`1`) and converting binomial p-values to Phred-scaled QUAL (`-10*log10(pval)`).
   - **Proportion to Percent Reporting Contract (RA-9)**: Standardized raw machine files to proportions (0–1) and human-facing summary tables/plots to percentages (`100 × proportion`) with explicit `%` labels.
-  - **Frequency Tiering Policy (RA-10)**: Documented 3-tier iSNV classification policy (`≥1%` confirmed, `0.1–1%` candidate, `<0.1%` exploratory) in documentation and executive reporting.
+  - **Frequency Tiering Policy (RA-10)**: Documented 3-tier iSNV classification policy (`≥1%` high-confidence candidate, `0.1–1%` low-frequency candidate, `<0.1%` exploratory) in documentation and executive reporting.
   - **Explicit SNPGenie Frequency Floor (RA-11)**: Passed `--minfreq=0` explicitly to `snpgenie.pl` in `SNPGENIE_RUN`.
   - **Indel Scope Documentation (RA-12)**: Documented SNV-only indel scope under default `lofreq_enable_indelqual = false`.
 

@@ -118,9 +118,9 @@ sampleB,data/sampleB_1.fastq.gz,data/sampleB_2.fastq.gz,infected
 
 - **Frequency Reporting Contract:** All machine-readable files (VCFs, raw TSVs) store allele frequencies strictly as proportions (`0.0` to `1.0`). All human-facing summary tables, reports, and visualization plots convert values to percentages (`100 × proportion`) with explicit `%` unit labels.
 - **Frequency Tiering & Corroboration Policy:**
-  - `≥ 1.0%`: Confirmed minor variant call.
-  - `0.1% – 1.0%`: Candidate iSNV call. Requires (1) LoFreq Poisson-binomial significance, (2) strand balance pass, and (3) ≥10 ALT-supporting reads (typically requiring depth ≥10,000×).
-  - `< 0.1%`: Below Q30 single-base error noise floor; reported as exploratory only.
+  - `≥ 1.0%`: High-confidence minor variant candidate (above routine sequencing noise floor; subject to coverage depth and strand-bias filtering).
+  - `0.1% – 1.0%`: Low-frequency candidate iSNV. Requires (1) caller statistical significance (e.g. LoFreq Poisson-binomial model), (2) strand-balance pass, and (3) sufficient ALT-supporting read depth (e.g., ≥10 ALT reads, requiring total depth ≥10,000×).
+  - `< 0.1%`: Below Q30 single-base error noise floor; reported as exploratory candidate only.
 - **Indel Scope:** By default, LoFreq runs with `lofreq_enable_indelqual = false`. Unqualified indels are filtered out by `--indelqual-thresh 20`, ensuring the pipeline operates in an iSNV / SNV-focused mode unless indel qualities are explicitly calculated.
 
 ### Execution Profiles
