@@ -1,0 +1,6 @@
+# GitHub Linguist Overrides
+# Exclude legacy code, third-party assets, and notebooks from language statistics
+
+legacy/** linguist-vendored
+assets/** linguist-vendored
+*.ipynb linguist-documentation
