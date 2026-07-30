@@ -23,6 +23,16 @@ nextflow_pipeline {
         then {
             assert workflow.success
             assert path("${outputDir}/Reports/tables/consolidated_sample_summary.tsv").exists()
+            assert path("${outputDir}/Reports/tables/variant_frequency_summary_pct.tsv").exists()
+
+            // Verify generated PNG plots exist and are non-trivial size (>5KB)
+            def densityPlot = path("${outputDir}/Reports/Plots/viral_analysis_variant_density.png")
+            assert densityPlot.exists()
+            assert densityPlot.toFile().length() > 5000
+
+            def spectrumPlot = path("${outputDir}/Reports/Plots/viral_analysis_allele_frequency_spectrum.png")
+            assert spectrumPlot.exists()
+            assert spectrumPlot.toFile().length() > 5000
         }
 
     }

@@ -186,9 +186,12 @@ All processes execute inside containerized environments with fully pinned quay.i
 
 ---
 
-## Test Fixtures & Maintenance
+## Test Fixtures & Validation Scope
 
-Deterministic synthetic test fixtures are generated via `tests/data/generate_fixtures.sh` using containerized tools. To regenerate test datasets:
+- **Synthetic Test Scope**: Deterministic synthetic test fixtures are generated via `tests/data/generate_fixtures.sh` using containerized tools. The automated CI suite (`-profile test`) uses these synthetic downsampled FASTQ fixtures to verify process execution, data contract adherence, schema validation, and figure generation.
+- **Operational Validation Scope**: The core variant calling (LoFreq / iVar) and selection analysis (SNPGenie) subworkflows have been operationally validated on real Alphavirus (VEEV, EEEV) sequencing study datasets under institutional SLURM HPC environments (`-profile slurm`). Optional quasispecies haplotype reconstruction modules (ShoRAH / CliqueSNV) are provided as exploratory analysis tools and require parameter tuning for specific target viral read lengths and depth profiles.
+
+To regenerate test datasets:
 
 ```bash
 bash tests/data/generate_fixtures.sh
