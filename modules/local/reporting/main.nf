@@ -79,8 +79,9 @@ process REPORT_VARIANT_PLOTS {
     path ("vcf_files/*")
 
     output:
-    path "*.png"        , emit: plots
-    path "versions.yml", emit: versions
+    path "*.png"                           , emit: plots
+    path "variant_frequency_summary_pct.tsv", emit: summary, optional: true
+    path "versions.yml"                    , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -98,6 +99,8 @@ process REPORT_VARIANT_PLOTS {
     stub:
     """
     touch ${params.dataset}_variant_density.png
+    touch ${params.dataset}_allele_frequency_spectrum.png
+    touch variant_frequency_summary_pct.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

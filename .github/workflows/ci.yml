@@ -87,5 +87,5 @@ jobs:
       - name: Run nf-test suite
         if: hashFiles(format('tests/{0}/**', matrix.suite)) != ''
         run: |
-          nf-test test --profile docker
+          nf-test test tests/${{ matrix.suite }}/** --profile docker
 

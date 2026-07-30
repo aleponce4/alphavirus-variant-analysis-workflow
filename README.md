@@ -63,24 +63,24 @@ flowchart TD
 
 ### Samplesheet Format (`--input`)
 
-The pipeline requires a CSV samplesheet specifying input BAM files and optional metadata for downstream selection analysis.
+The pipeline requires a CSV samplesheet specifying raw or trimmed paired-end FASTQ reads and experimental group treatment labels for downstream evolutionary selection analysis.
 
 | Field | Description | Required | Example |
 |---|---|---|---|
 | `sample` | Unique sample identifier | Yes | `sampleA` |
-| `bam` | Path to STAR-aligned viral BAM file | Yes | `data/sampleA.bam` |
-| `bai` | Path to BAM index file (`.bai`) | Yes | `data/sampleA.bam.bai` |
-| `condition` | Experimental group / condition | Optional* | `infected` |
-| `dpi` | Days post-infection (numeric) | Optional* | `3` |
+| `fastq_1` | Path to R1 FASTQ file (`.fastq.gz`) | Yes | `data/sampleA_1.fastq.gz` |
+| `fastq_2` | Path to R2 FASTQ file (`.fastq.gz`) | Yes | `data/sampleA_2.fastq.gz` |
+| `treatment` | Experimental group / condition label | Optional* | `infected` |
 
-*\* Required when `--run_snpgenie true` is enabled.*
+*\* Required when `--run_snpgenie true` is enabled for group comparison.*
 
 Example `samplesheet.csv`:
 ```csv
-sample,bam,bai,condition,dpi
-sampleA,data/sampleA.bam,data/sampleA.bam.bai,infected,3
-sampleB,data/sampleB.bam,data/sampleB.bam.bai,infected,7
+sample,fastq_1,fastq_2,treatment
+sampleA,data/sampleA_1.fastq.gz,data/sampleA_2.fastq.gz,infected
+sampleB,data/sampleB_1.fastq.gz,data/sampleB_2.fastq.gz,infected
 ```
+
 
 ### Pipeline Parameters
 
@@ -137,11 +137,11 @@ sampleB,data/sampleB.bam,data/sampleB.bam.bai,infected,7
   ```
   Executes jobs via SLURM scheduler using Singularity containers.
 
-- **AWS Batch Cloud Profile (`awsbatch`)**:
+- **AWS Batch Cloud Profile (`awsbatch`)**: *(Unvalidated Template)*
   ```bash
   nextflow run . -profile awsbatch -w s3://my-bucket/work --input s3://my-bucket/samplesheet.csv --fasta s3://my-bucket/ref.fa --gff s3://my-bucket/ref.gff3
   ```
-  Executes jobs on AWS Batch container instances using Docker containers with work directory on S3.
+  Example configuration template for AWS Batch container execution with S3 storage. Adjust queue name and AWS CLI paths in `conf/awsbatch.config` for your infrastructure before deployment.
 
 ---
 

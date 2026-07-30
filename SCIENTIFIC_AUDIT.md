@@ -10,6 +10,24 @@
 
 ---
 
+## Audit Finding & Resolution Tracking Record (Updated: 2026-07-30)
+
+| Finding ID | Original Severity | Description | Status | Corrective Action & Location | Verification Test / Evidence |
+|---|---|---|---|---|---|
+| **MF-1** | Critical | iVar 1% hard floor (`-t 0.01`) | **RESOLVED** | Updated `ivar_min_freq = 0.001` in `nextflow.config` | Verified iVar emits candidate variants down to 0.1% |
+| **MF-2** | Critical | 1,000× inclusion depth floor | **RESOLVED** | Set `ivar_min_depth = 10`, `lofreq_min_depth = 10` in `nextflow.config` | Permissive calling across low & high depth regions |
+| **MF-3** | High | Dead `lofreq_min_freq` parameter | **RESOLVED** | Removed unused parameter from `nextflow.config` and schema | Clean schema without misleading options |
+| **MF-4** | High | Legacy ShoRAH / VILOCA geometry | **RESOLVED** | Explicit window geometry `viloca_window = 150`, `viloca_shift = 50` | Deterministic quasispecies window tiling |
+| **MF-5** | High | Silent NaN Kruskal statistics (no scipy) | **RESOLVED** | Updated `container_python_reporting` to `quay.io/biocontainers/seaborn:0.13.2` | Valid p-values emitted by `analyze_delta_selection.py` |
+| **MF-6** | Moderate | LoFreq MQ ≥ 60 over-aggressive | **RESOLVED** | Relaxed `lofreq_min_mq = 20` in `nextflow.config` | Preserves reads in variable viral regions |
+| **MF-7** | Moderate | Percent/Proportion contract & stub plots | **RESOLVED** | Machine VCFs store proportions; `generate_variant_plots.py` computes % & generates figures | Real PNG plots (274 KB) & `variant_frequency_summary_pct.tsv` |
+| **MF-8** | Moderate | Fabricated GT/QUAL in iVar VCF | **RESOLVED** | `ivar_variants_to_vcf.py` outputs haploid GT (`1`) & converts p-value to QUAL | Valid VCF output feeding `bcftools csq` |
+| **MF-9** | Low | Implicit CliqueSNV threshold | **RESOLVED** | Explicit `--cliquesnv_min_freq 0.001` configured | Pinned CliqueSNV frequency threshold |
+| **MF-10** | Low | Undocumented indel scope | **DOCUMENTED** | Documented SNV-focused scope (`lofreq_enable_indelqual = false`) in `README.md` | Documented design choice |
+| **MF-11** | Low | Sub-0.5% corroboration policy | **RESOLVED** | Implemented candidate frequency tiering (`>=1%`, `0.1-1% candidate`, `<0.1% exploratory`) | Output TSV & plot tiering |
+
+---
+
 ## 1. Confirmed Validities
 
 Tools and settings verified to be scientifically sound for this biological context.
