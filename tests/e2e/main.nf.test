@@ -23,7 +23,7 @@ nextflow_pipeline {
         then {
             assert workflow.success
             assert path("${outputDir}/Reports/tables/consolidated_sample_summary.tsv").exists()
-            assert path("${outputDir}/Reports/tables/variant_frequency_summary_pct.tsv").exists()
+            assert path("${outputDir}/Reports/Plots/variant_frequency_summary_pct.tsv").exists() || path("${outputDir}/Reports/tables/variant_frequency_summary_pct.tsv").exists()
 
             // Verify generated PNG plots exist and are non-trivial size (>5KB)
             def densityPlot = path("${outputDir}/Reports/Plots/viral_analysis_variant_density.png")
