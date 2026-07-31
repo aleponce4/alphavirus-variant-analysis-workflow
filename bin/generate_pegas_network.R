@@ -26,6 +26,9 @@ if (!file.exists(freq_csv)) {
 # 1. Read frequency table
 freq_df <- read.csv(freq_csv, stringsAsFactors = FALSE)
 
+# Filter out massive deletion artifacts (defective interfering particles) that break the scale
+freq_df <- freq_df[is.na(freq_df$n_mutations) | freq_df$n_mutations <= 15, ]
+
 # 2. Filter to qualifying haplotypes (frequency >= 0.01 in at least one sample)
 qual_haps <- unique(freq_df$haplotype_id[freq_df$frequency >= 0.01])
 qual_haps <- sort(qual_haps)
