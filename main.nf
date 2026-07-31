@@ -98,7 +98,11 @@ workflow {
         COVERAGE_QC.out.coverage_summary.map { meta, summary -> summary },
         VARIANT_CALLING.out.lofreq_vcf.map { meta, vcf, tbi -> vcf },
         SELECTION.out.selection_tables,
-        HAPLOTYPE.out.haplotypes.map { meta, fasta -> fasta },
+        HAPLOTYPE.out.cliquesnv_fasta,
+        HAPLOTYPE.out.viloca_cooccurrence,
+        INPUT_CHECK.out.fasta,
+        INPUT_CHECK.out.gff,
+        file(params.input),
         DUMP_SOFTWARE_VERSIONS.out.yml
     )
 

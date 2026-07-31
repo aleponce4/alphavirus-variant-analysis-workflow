@@ -155,6 +155,26 @@
           "type": "number",
           "default": 0.001,
           "description": "Minimum allele frequency threshold for CliqueSNV quasispecies reconstruction."
+        },
+        "haplotype_report_min_freq": {
+          "type": "number",
+          "default": 0.01,
+          "description": "Minimum frequency threshold (as a proportion 0–1) for reporting confirmed quasispecies haplotypes."
+        },
+        "viloca_min_pair_samples": {
+          "type": "integer",
+          "default": 2,
+          "description": "Minimum sample threshold for classifying recurrent linked mutation pairs in VILOCA."
+        },
+        "viloca_min_pair_support": {
+          "type": "number",
+          "default": 0.80,
+          "description": "Minimum posterior support threshold for VILOCA linked mutation pair reporting."
+        },
+        "viloca_min_reads": {
+          "type": "number",
+          "default": 10.0,
+          "description": "Minimum read count threshold for VILOCA linked mutation pair reporting."
         }
       }
     },
@@ -219,6 +239,10 @@
     "viloca_window": { "$ref": "#/definitions/haplotype_options/properties/viloca_window" },
     "viloca_shift": { "$ref": "#/definitions/haplotype_options/properties/viloca_shift" },
     "cliquesnv_min_freq": { "$ref": "#/definitions/haplotype_options/properties/cliquesnv_min_freq" },
+    "haplotype_report_min_freq": { "$ref": "#/definitions/haplotype_options/properties/haplotype_report_min_freq" },
+    "viloca_min_pair_samples": { "$ref": "#/definitions/haplotype_options/properties/viloca_min_pair_samples" },
+    "viloca_min_pair_support": { "$ref": "#/definitions/haplotype_options/properties/viloca_min_pair_support" },
+    "viloca_min_reads": { "$ref": "#/definitions/haplotype_options/properties/viloca_min_reads" },
     "run_ivar": { "$ref": "#/definitions/workflow_toggles/properties/run_ivar" },
     "run_lofreq": { "$ref": "#/definitions/workflow_toggles/properties/run_lofreq" },
     "run_annotation": { "$ref": "#/definitions/workflow_toggles/properties/run_annotation" },

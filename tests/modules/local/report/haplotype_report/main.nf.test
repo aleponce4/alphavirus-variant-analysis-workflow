@@ -1,0 +1,31 @@
+nextflow_process {
+
+    name "Test Process HAPLOTYPE_REPORT"
+    script "modules/local/report/haplotype_report/main.nf"
+    process "HAPLOTYPE_TABLES"
+
+    test("haplotype_tables - stub") {
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    file("${projectDir}/tests/data/README.md", checkIfExists: true)
+                ]
+                input[1] = file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true)
+                input[2] = file("${projectDir}/tests/data/viral_ref.test.gff3", checkIfExists: true)
+                input[3] = file("${projectDir}/assets/samplesheet.test.csv", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert path(process.out.frequency_table[0]).exists()
+            assert path(process.out.summary_table[0]).exists()
+            assert path(process.out.sequences_fasta[0]).exists()
+            assert path(process.out.versions[0]).exists()
+        }
+    }
+}

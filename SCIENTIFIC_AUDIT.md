@@ -17,7 +17,7 @@
 | **MF-1** | Critical | iVar 1% hard floor (`-t 0.01`) | **RESOLVED** | Updated `ivar_min_freq = 0.001` in `nextflow.config` | Verified iVar emits candidate variants down to 0.1% |
 | **MF-2** | Critical | 1,000× inclusion depth floor | **RESOLVED** | Set `ivar_min_depth = 10`, `lofreq_min_depth = 10` in `nextflow.config` | Permissive calling across low & high depth regions |
 | **MF-3** | High | Dead `lofreq_min_freq` parameter | **RESOLVED** | Removed unused parameter from `nextflow.config` and schema | Clean schema without misleading options |
-| **MF-4** | High | Legacy ShoRAH / VILOCA geometry | **RESOLVED** | Explicit window geometry `viloca_window = 150`, `viloca_shift = 50` | Deterministic quasispecies window tiling |
+| **MF-4** | High | Legacy ShoRAH / VILOCA geometry | **RESOLVED** | Updated module to run `viloca run` with explicit window parameters (`viloca_window = 150`, `viloca_shift = 50`) & pinned biocontainer | Deterministic quasispecies window tiling & real VILOCA outputs |
 | **MF-5** | High | Silent NaN Kruskal statistics (no scipy) | **RESOLVED** | Updated `container_python_reporting` to `quay.io/biocontainers/seaborn:0.13.2` | Valid p-values emitted by `analyze_delta_selection.py` |
 | **MF-6** | Moderate | LoFreq MQ ≥ 60 over-aggressive | **RESOLVED** | Relaxed `lofreq_min_mq = 20` in `nextflow.config` | Preserves reads in variable viral regions |
 | **MF-7** | Moderate | Percent/Proportion contract & stub plots | **RESOLVED** | Machine VCFs store proportions; `generate_variant_plots.py` computes % & generates figures | Real PNG plots (274 KB) & `variant_frequency_summary_pct.tsv` |

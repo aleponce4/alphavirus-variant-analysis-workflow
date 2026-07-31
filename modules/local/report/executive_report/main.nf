@@ -69,13 +69,15 @@ if os.path.exists("selection_gene_key_table.tsv") and os.path.getsize("selection
     )
 
 hap_img = ""
-hap_plots = glob.glob("*haplotype*.png")
-if hap_plots:
+freq_plot = f"{dataset}_haplotype_frequencies.png"
+net_plot = f"{dataset}_haplotype_network.png"
+if os.path.exists(freq_plot) or os.path.exists(net_plot):
     hap_img = (
         '<section class="card">'
-        '<h2>Haplotype Reconstruction</h2>'
-        '<p>Quasispecies haplotype reconstruction outputs.</p>'
-        + embed_image(hap_plots[0]) +
+        '<h2>Haplotype Reconstruction & Quasispecies Diversity</h2>'
+        '<p>Reconstructed viral quasispecies composition (CliqueSNV) and haplotype minimum spanning network.</p>'
+        + embed_image(freq_plot)
+        + embed_image(net_plot) +
         '</section>'
     )
 

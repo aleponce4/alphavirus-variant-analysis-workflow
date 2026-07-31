@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Frequency Tiering Policy (RA-10)**: Documented 3-tier iSNV classification policy (`≥1%` high-confidence candidate, `0.1–1%` low-frequency candidate, `<0.1%` exploratory) in documentation and executive reporting.
   - **Explicit SNPGenie Frequency Floor (RA-11)**: Passed `--minfreq=0` explicitly to `snpgenie.pl` in `SNPGENIE_RUN`.
   - **Indel Scope Documentation (RA-12)**: Documented SNV-only indel scope under default `lofreq_enable_indelqual = false`.
+  - **VILOCA Module Fix & Haplotype Reporting Integration**: Updated VILOCA module to execute real `viloca run` using pinned `quay.io/biocontainers/viloca:1.1.1--py310h563914a_0` container; split HAPLOTYPE subworkflow emits into dedicated CliqueSNV and VILOCA channels; added `build_haplotype_tables.py`, `summarize_linked_mutations.py`, and `plot_haplotypes.py` (composition stacked bar plot + Minimum Spanning Network with treatment pie nodes); integrated reporting into `REPORTING` subworkflow and `assets/executive_report.qmd`.
 
 ## [1.2.0] - 2026-07-29
 

@@ -26,7 +26,7 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path(process.out.csv[0][1]).exists()
+            assert path(process.out.cooccurrence[0][1]).exists()
             assert path(process.out.versions[0]).exists()
         }
 
@@ -54,7 +54,7 @@ nextflow_process {
 
         then {
             assert process.success
-            assert path(process.out.csv[0][1]).exists()
+            assert path(process.out.cooccurrence[0][1]).exists()
             assert path(process.out.versions[0]).exists()
         }
 

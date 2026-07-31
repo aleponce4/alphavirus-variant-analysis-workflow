@@ -104,9 +104,13 @@ sampleB,data/sampleB_1.fastq.gz,data/sampleB_2.fastq.gz,infected
 | `--lofreq_sig` | `0.01` | LoFreq significance threshold |
 | `--lofreq_enable_indelqual` | `false` | Enable LoFreq indel quality assessment |
 | `--lofreq_enable_baq` | `false` | Enable LoFreq base alignment quality (BAQ) |
-| `--viloca_window` | `150` | Window size for VILOCA/ShoRAH quasispecies reconstruction |
-| `--viloca_shift` | `50` | Window shift step for VILOCA/ShoRAH quasispecies reconstruction |
+| `--viloca_window` | `150` | Window size for VILOCA local quasispecies reconstruction |
+| `--viloca_shift` | `50` | Window shift step for VILOCA local quasispecies reconstruction |
 | `--cliquesnv_min_freq` | `0.001` | Minimum frequency threshold for CliqueSNV |
+| `--haplotype_report_min_freq` | `0.01` | Minimum frequency threshold (proportion 0-1) for reporting confirmed haplotypes |
+| `--viloca_min_pair_samples` | `2` | Minimum sample threshold for recurrent linked mutation pair classification |
+| `--viloca_min_pair_support` | `0.80` | Minimum posterior support threshold for VILOCA linked mutation pair reporting |
+| `--viloca_min_reads` | `10.0` | Minimum read count threshold for VILOCA linked mutation pair reporting |
 | `--run_ivar` | `true` | Enable iVar subworkflow |
 | `--run_lofreq` | `true` | Enable LoFreq subworkflow |
 | `--run_annotation` | `true` | Enable variant functional annotation (`bcftools csq`) |
@@ -171,10 +175,18 @@ results/
 ├── SNPGenie/       (optional)
 ├── Haplotypes/     (optional)
 │   ├── CliqueSNV/
-│   └── VILOCA/
+│   ├── VILOCA/
+│   └── tables/
+│       ├── haplotype_frequency_by_sample.csv
+│       ├── haplotype_summary.csv
+│       ├── haplotype_sequences.fasta
+│       ├── linked_mutations_long.csv
+│       └── linked_mutations_recurrent.csv
 ├── Reports/
 │   ├── tables/
 │   └── Plots/
+│       ├── <dataset>_haplotype_frequencies.png
+│       └── <dataset>_haplotype_network.png
 ├── MultiQC/
 └── pipeline_info/
 ```

@@ -103,10 +103,30 @@ if has_selection:
 #| results: 'asis'
 
 if has_haplotype:
-    display(HTML("<h1>Haplotype Reconstruction</h1>"))
-    display(HTML("<p>Reconstructed viral haplotypes using CliqueSNV and VILOCA quasispecies tools.</p>"))
-    hap_plot = f"{dataset}_haplotype_frequencies.png"
-    display(HTML(embed_image(hap_plot)))
+    display(HTML("<h1>Haplotype Reconstruction & Quasispecies Diversity</h1>"))
+    display(HTML("<p>Global quasispecies haplotypes reconstructed via CliqueSNV (frequency tiers: &ge;1.0% report, 0.1–1.0% candidate, &lt;0.1% exploratory) and local mutation linkage analyzed via VILOCA (uniform window size: 150 bp, shift: 50 bp).</p>"))
+    
+    freq_plot = f"{dataset}_haplotype_frequencies.png"
+    if os.path.exists(freq_plot):
+        display(HTML("<h3>Haplotype Frequency Composition</h3>"))
+        display(HTML(embed_image(freq_plot)))
+        
+    net_plot = f"{dataset}_haplotype_network.png"
+    if os.path.exists(net_plot):
+        display(HTML("<h3>Minimum Spanning Haplotype Network (&ge;1% Tier)</h3>"))
+        display(HTML(embed_image(net_plot)))
+        
+    hap_sum_file = "haplotype_summary.csv"
+    if os.path.exists(hap_sum_file):
+        display(HTML("<h3>Quasispecies Haplotype Diversity Summary</h3>"))
+        df_hap = pd.read_csv(hap_sum_file)
+        display(HTML(df_hap.to_html(classes="table table-striped table-hover", index=False)))
+        
+    link_file = "linked_mutations_recurrent.csv"
+    if os.path.exists(link_file) and os.path.getsize(link_file) > 0:
+        display(HTML("<h3>Top Recurrent Linked Mutation Pairs (VILOCA)</h3>"))
+        df_link = pd.read_csv(link_file)
+        display(HTML(df_link.head(10).to_html(classes="table table-striped table-hover", index=False)))
 ```
 
 # Software Provenance

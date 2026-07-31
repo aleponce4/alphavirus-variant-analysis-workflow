@@ -37,8 +37,8 @@ The pipeline follows strict Nextflow DSL2 modularity conventions:
 | **`ANNOTATION`** | Converts iVar TSV outputs to valid VCFs and annotates variant consequences in haploid viral coding sequences. | `ivar_variants_to_vcf.py`, `bcftools csq` |
 | **`COVERAGE_QC`** | Calculates per-base depth statistics, target coverage fractions, and mean depth metrics. | `samtools depth`, `generate_coverage_plots.py` |
 | **`SELECTION`** | Executes SNPGenie per-sample for nucleotide diversity ($\pi_N$, $\pi_S$) and $d_N/d_S$ ratios, followed by non-parametric Kruskal-Wallis & limma differential selection analysis. | `SNPGenie` (Perl), `analyze_delta_selection.py`, `analyze_delta_limma.R` |
-| **`HAPLOTYPE`** | Reconstructs quasispecies haplotypes and estimates intra-host viral quasispecies diversity. | `CliqueSNV`, `VILOCA` / `ShoRAH` |
-| **`REPORTING`** | Consolidates workflow metrics, computes percentage frequency tiers (`>=1%`, `0.1-1% candidate`, `<0.1% exploratory`), and outputs publication-ready plots. | `generate_variant_plots.py`, `generate_run_summary.py`, MultiQC |
+| **`HAPLOTYPE`** | Reconstructs quasispecies haplotypes and estimates intra-host viral quasispecies diversity. | `CliqueSNV`, `VILOCA` |
+| **`REPORTING`** | Consolidates workflow metrics, computes percentage frequency tiers (`>=1%`, `0.1-1% candidate`, `<0.1% exploratory`), and outputs publication-ready plots & haplotype network summaries. | `generate_variant_plots.py`, `build_haplotype_tables.py`, `summarize_linked_mutations.py`, `plot_haplotypes.py`, MultiQC |
 
 ---
 
