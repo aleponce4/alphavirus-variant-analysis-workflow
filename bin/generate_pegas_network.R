@@ -149,7 +149,7 @@ if (length(zero_rows) > 0) {
 sizes <- row_sums
 sizes[sizes == 0] <- 0.02 # ensure injected reference has minimal size
 # Use strictly proportional area scaling (no flat intercept)
-sizes_scaled <- sqrt(sizes) * 3.5
+sizes_scaled <- sqrt(sizes) * 1.5
 
 # Normalize pie_matrix so rows sum to 1 to prevent "incomplete circles" in pegas
 for (i in 1:nrow(pie_matrix)) {
@@ -159,8 +159,9 @@ for (i in 1:nrow(pie_matrix)) {
 }
 
 # Render 5-inch wide publication figure using Arial font
-png(out_png, width = 5, height = 4.5, units = "in", res = 300, family = "Arial")
-par(mar = c(1.5, 1.5, 2.5, 1.5), family = "Arial", cex.main = 0.9)
+png(out_png, width = 6.5, height = 5.5, units = "in", res = 300, family = "Arial")
+# Increase left margin to give legends more room
+par(mar = c(1.5, 3.5, 2.5, 1.5), family = "Arial", cex.main = 0.9)
 
 plot(
   net,
@@ -179,7 +180,8 @@ plot(
 )
 
 # 1. Group / DPI Legend
-leg1 <- legend("topleft", legend = groups, fill = group_colors, bty = "n", cex = 0.7, title = group_title)
+# Place in topright
+leg1 <- legend("topright", inset=c(0, 0), legend = groups, fill = group_colors, bty = "n", cex = 0.7, title = group_title)
 
 # Determine dynamic legend values based on max abundance
 max_abund <- max(sizes)
@@ -192,21 +194,24 @@ if (max_abund <= 1.0) {
 }
 leg_vals <- unique(leg_vals)
 
+# Max pt.cex for the legend
+max_cex <- sqrt(max(leg_vals)) * 1.5
+
 # 2. Total Abundance Node Size Legend
-# Placed dynamically below the first legend, with increased vertical spacing (y.intersp)
+# Placed dynamically below the first legend
 legend(
-  x = leg1$rect$left,
-  y = leg1$rect$top - leg1$rect$h - (diff(par("usr")[3:4]) * 0.04),
+  x = leg1$rect$left + (max_cex * 0.05),
+  y = leg1$rect$top - leg1$rect$h - (max_cex * 0.04),
   legend = as.character(leg_vals),
-  pt.cex = sqrt(leg_vals) * 3.5,
+  pt.cex = sqrt(leg_vals) * 1.5,
   pch = 21,
   col = "black",
   pt.bg = "white",
   bty = "n",
   title = "Total Abundance",
   cex = 0.7,
-  y.intersp = 2.5,
-  x.intersp = 2.5
+  y.intersp = max_cex * 0.8,
+  x.intersp = 1.5
 )
 
 dev.off()
