@@ -25,7 +25,7 @@ nextflow_workflow {
 
         then {
             assert workflow.success
-            assert workflow.out.haplotypes != null
+            assert workflow.out.cliquesnv_fasta != null
         }
 
     }

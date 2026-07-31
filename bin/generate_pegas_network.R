@@ -114,6 +114,7 @@ if ("dpi" %in% colnames(sub_df) && length(unique(sub_df$dpi[!is.na(sub_df$dpi) &
 groups <- sort(unique(sub_df[[group_col]]))
 groups <- groups[groups != "" & !is.na(groups)]
 if (length(groups) == 0) groups <- "group"
+groups <- as.character(groups)
 group_colors <- setNames(okabe_ito[1:length(groups)], groups)
 
 # 8. Build pie matrix for group composition per haplotype
@@ -125,12 +126,12 @@ for (i in seq_along(net_labels)) {
   node_name <- net_labels[i]
   if (node_name == "Reference" && is.null(ref_hap)) {
     # Injected reference (not in samples) gets tiny artificial size
-    for (g in groups) pie_matrix[i, g] <- 0
+    for (g in groups) pie_matrix[i, as.character(g)] <- 0
   } else {
     node_df <- sub_df[sub_df$haplotype_id == node_name, ]
     for (g in groups) {
       g_freqs <- node_df$frequency[node_df[[group_col]] == g]
-      pie_matrix[i, g] <- if (length(g_freqs) > 0) sum(g_freqs, na.rm = TRUE) else 0
+      pie_matrix[i, as.character(g)] <- if (length(g_freqs) > 0) sum(g_freqs, na.rm = TRUE) else 0
     }
   }
 }
@@ -158,17 +159,19 @@ for (i in 1:nrow(pie_matrix)) {
   }
 }
 
-# Render 5-inch wide publication figure using Arial font
-png(out_png, width = 6.5, height = 5.5, units = "in", res = 300, family = "Arial")
-# Increase left margin to give legends more room
-par(mar = c(1.5, 3.5, 2.5, 1.5), family = "Arial", cex.main = 0.9)
+# Render 9-inch wide publication figure using Arial font
+png(out_png, width = 9.0, height = 6.0, units = "in", res = 300, family = "Arial")
 
+# Split the layout into 2 columns: 75% for plot, 25% for legends
+layout(matrix(c(1, 2), nrow = 1), widths = c(3.5, 1.5))
+
+# 1st Panel: The Network
+par(mar = c(1.5, 1.5, 2.5, 1.5), family = "Arial", cex.main = 0.9)
 plot(
   net,
   size = sizes_scaled,
   pie = pie_matrix,
   bg = group_colors,
-  # xy = xy_coords, # Removed to use PopART geometric layout
   fast = FALSE,
   labels = TRUE,
   font = 2,
@@ -179,9 +182,12 @@ plot(
   main = paste0(dataset, " — Quasispecies Temporal Haplotype Network (PopART style)")
 )
 
-# 1. Group / DPI Legend
-# Place in topright
-leg1 <- legend("topright", inset=c(0, 0), legend = groups, fill = group_colors, bty = "n", cex = 0.7, title = group_title)
+# 2nd Panel: The Legends
+par(mar = c(1.5, 0, 2.5, 1.0), family = "Arial")
+plot.new() # Create an empty plot for legends
+
+# 1. Group / DPI Legend (anchored to top left of this empty panel)
+leg1 <- legend("topleft", legend = groups, fill = group_colors, bty = "n", cex = 0.8, title = group_title)
 
 # Determine dynamic legend values based on max abundance
 max_abund <- max(sizes)
@@ -196,12 +202,13 @@ leg_vals <- unique(leg_vals)
 
 # Max pt.cex for the legend
 max_cex <- sqrt(max(leg_vals)) * 1.5
+leg_vals <- sort(unique(leg_vals), decreasing = TRUE)
 
 # 2. Total Abundance Node Size Legend
-# Placed dynamically below the first legend
+# Placed dynamically below the first legend with clean spacing
 legend(
-  x = leg1$rect$left + (max_cex * 0.05),
-  y = leg1$rect$top - leg1$rect$h - (max_cex * 0.04),
+  x = leg1$rect$left,
+  y = leg1$rect$top - leg1$rect$h - 0.2,
   legend = as.character(leg_vals),
   pt.cex = sqrt(leg_vals) * 1.5,
   pch = 21,
@@ -209,9 +216,9 @@ legend(
   pt.bg = "white",
   bty = "n",
   title = "Total Abundance",
-  cex = 0.7,
-  y.intersp = max_cex * 0.8,
-  x.intersp = 1.5
+  cex = 0.8,
+  y.intersp = 2.0 + (max_cex * 0.15),
+  x.intersp = 2.0 + (max_cex * 0.15)
 )
 
 dev.off()

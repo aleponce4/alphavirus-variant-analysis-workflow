@@ -20,7 +20,20 @@ nextflow_workflow {
                 )
                 input[3] = Channel.empty()
                 input[4] = Channel.empty()
-                input[5] = Channel.of(
+                input[5] = Channel.empty()
+                input[6] = Channel.of([
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.fasta", checkIfExists: true),
+                    file("${projectDir}/tests/data/viral_ref.test.fasta.fai", checkIfExists: true)
+                ])
+                input[7] = Channel.of([
+                    [ id: 'viral_ref' ],
+                    file("${projectDir}/tests/data/viral_ref.test.gff3", checkIfExists: true)
+                ])
+                input[8] = Channel.of(
+                    file("${projectDir}/assets/samplesheet.test.csv", checkIfExists: true)
+                )
+                input[9] = Channel.of(
                     file("${projectDir}/tests/data/versions.yml", checkIfExists: true)
                 )
                 """
